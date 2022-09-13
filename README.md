@@ -1,15 +1,33 @@
 ![CI](https://github.com/nearform/bench-template/actions/workflows/ci.yml/badge.svg?event=push)
 
-# Bench Template
-A feature-packed template to start a new repository on the bench, including:
+A slow down plugin for fastify
 
-- code linting with [ESlint](https://eslint.org) and [prettier](https://prettier.io)
-- pre-commit code linting and commit message linting with [husky](https://www.npmjs.com/package/husky) and [commitlint](https://commitlint.js.org/)
-- dependabot setup with automatic merging thanks to ["merge dependabot" GitHub action](https://github.com/fastify/github-action-merge-dependabot)
-- notifications about commits waiting to be released thanks to ["notify release" GitHub action](https://github.com/nearform/github-action-notify-release)
-- PRs' linked issues check with ["check linked issues" GitHub action](https://github.com/nearform/github-action-check-linked-issues)
-- Continuous Integration GitHub workflow
+## Usage
+Register the plugin.<br>
+This plugin will add an `onRequest` hook to slow down if a client (based on their IP address) has made too multiple requests in the given timeWindow.
+```js
+import Fastify from 'fastify'
+import slowDownPlugin from '../index.js'
 
-## When you have already a repo
+const fastify = Fastify()
 
-If you already created a repo and you want to add some of the features above to it, you can have a look at [NearForm MRM Preset](https://github.com/nearform/mrm-preset-nearform).
+// register the plugin
+fastify.register(slowDownPlugin)
+
+// create a route
+fastify.get('/', async (req, reply) => reply.send('tap test!'))
+
+// start server
+fastify.listen({ port: 3000 }, err => {
+  if (err) throw err
+  console.log('Server: http://localhost:3000')
+})
+```
+
+The response will have some additional headers:
+
+| Header | Description |
+|--------|-------------|
+|`x-slowdown-limit`     | how many requests the client can make until servers start to slow down the response
+|`x-slowdown-remaining` | how many requests remain to the client in the timewindow
+|`x-slowdown-delay` | the actual delay applied to the client for the request
