@@ -2,9 +2,15 @@
 
 A slow down plugin for fastify
 
+## Installation
+
+```bash
+npm i fastify-slow-down
+```
+
 ## Usage
-Register the plugin.<br>
-This plugin will add an `onRequest` hook to slow down if a client (based on their IP address) has made too multiple requests in the given timeWindow.
+Register the plugin.
+This plugin will add an `onRequest` hook to slow down replies if a client (based on their IP address) has made too many multiple requests in the given `timeWindow`.
 ```js
 import Fastify from 'fastify'
 import slowDownPlugin from '../index.js'
@@ -15,7 +21,7 @@ const fastify = Fastify()
 fastify.register(slowDownPlugin)
 
 // create a route
-fastify.get('/', async (req, reply) => reply.send('tap test!'))
+fastify.get('/', async (req, reply) => reply.send('Hello from Fastify!'))
 
 // start server
 fastify.listen({ port: 3000 }, err => {
@@ -28,6 +34,6 @@ The response will have some additional headers:
 
 | Header | Description |
 |--------|-------------|
-|`x-slowdown-limit`     | how many requests the client can make until servers start to slow down the response
-|`x-slowdown-remaining` | how many requests remain to the client in the timewindow
-|`x-slowdown-delay` | the actual delay applied to the client for the request
+|`x-slow-down-limit`     | how many requests the client can make until servers start to slow down the response
+|`x-slow-down-remaining` | how many requests remain to the client in the timewindow
+|`x-slow-down-delay` | the delayed is applied to this specific request

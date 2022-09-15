@@ -1,20 +1,17 @@
 import { test } from 'tap'
 import Fastify from 'fastify'
 import slowDownPlugin from '../index.js'
+import { HEADERS } from '../lib/constants.js'
 
 test('Should work as a normal API', async t => {
   const fastify = Fastify()
   await fastify.register(slowDownPlugin)
-  fastify.get('/', async () => 'tap test!')
+  fastify.get('/', async () => 'Hello from Fastify!')
 
-  let res = await fastify.inject({
-    method: 'GET',
-    url: '/'
-  })
+  let res = await fastify.inject('/')
 
   t.equal(res.statusCode, 200)
-  t.equal(res.headers['x-slowdown-limit'], 0)
-  t.equal(res.headers['x-slowdown-delay'], 100)
-  t.pass()
-  t.end()
+  t.equal(res.headers[HEADERS.limit], 0)
+  t.equal(res.headers[HEADERS.delay], 100)
+  t.teardown(() => fastify.close())
 })

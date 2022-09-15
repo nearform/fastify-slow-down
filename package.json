@@ -4,39 +4,50 @@
   "description": "A slow down plugin for fastify",
   "main": "index.js",
   "type": "module",
+  "files": [
+    "index.js",
+    "lib"
+  ],
   "scripts": {
     "lint": "eslint .",
-    "test": "tap \"test/**/*.test.js\"",
+    "test": "tap test/*.test.js",
     "prepare": "husky install"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/nearform/bench-template.git"
+    "url": "git+https://github.com/nearform/fastify-slow-down.git"
   },
-  "keywords": [],
+  "keywords": [
+    "fastify",
+    "slow down"
+  ],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/nearform/bench-template/issues"
+    "url": "https://github.com/nearform/fastify-slow-down/issues"
   },
-  "homepage": "https://github.com/nearform/bench-template#readme",
+  "homepage": "https://github.com/nearform/fastify-slow-down#readme",
   "devDependencies": {
     "@commitlint/cli": "^17.1.2",
     "@commitlint/config-conventional": "^17.1.0",
     "eslint": "^8.23.1",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-prettier": "^4.2.1",
+    "fastify": "^4.5.3",
     "husky": "^8.0.1",
     "lint-staged": "^13.0.3",
-    "prettier": "^2.7.1"
+    "prettier": "^2.7.1",
+    "tap": "^16.0.0"
   },
   "lint-staged": {
     "*.{js,jsx}": "eslint --cache --fix"
   },
+  "peerDependencies": {
+    "fastify": "4.x"
+  },
   "dependencies": {
-    "fastify": "^4.5.3",
     "fastify-plugin": "^4.2.1",
     "ms": "^2.1.3",
-    "tap": "^16.3.0"
+    "on-finished": "^2.4.1"
   }
 }

@@ -1,15 +1,29 @@
 import fp from 'fastify-plugin'
-import { slowDownRequestHandler } from './lib/utils.js'
+import { DEFAULT_OPTIONS, HEADERS } from './lib/constants.js'
+import { Store } from './lib/store.js'
+import { convertToMs, sleep } from './lib/helpers.js'
+import onFinished from 'on-finished'
 
-/**
- * How it's working:
- * Keep in memory the records by ip {"192.0.0.1": 2, "ip": count}
- * when the limit (by deafault 0) is reached by record, start to delay the response with delayMs (1000) (ms)
- * reset to default records when after keepInMemoryMS (1000) API inactivity
- */
-
-async function slowDownPlugin(fastify) {
-  fastify.addHook('onRequest', slowDownRequestHandler())
+const slowDownPlugin = async fastify => {
+  const options = { ...DEFAULT_OPTIONS }
+  const store = new Store(convertToMs(options.timeWindow))
+  fastify.addHook('onClose', () => store.close())
+  fastify.addHook('onRequest', async (req, reply) => {
+    const value = store.incrementOnKey(options.keyGenerator(req))
+    const delay =
+      value > options.maxUntilDelay
+        ? (value - options.maxUntilDelay) * convertToMs(options.delay)
+        : 0
+    reply.header(HEADERS.limit, options.maxUntilDelay)
+    reply.header(HEADERS.remaining, Math.max(options.maxUntilDelay - value, 0))
+    if (delay !== 0) {
+      reply.header(HEADERS.delay, delay)
+      onFinished(req, () => {
+        return reply
+      })
+      await sleep(delay)
+    }
+  })
 }
 
 export default fp(slowDownPlugin, {
