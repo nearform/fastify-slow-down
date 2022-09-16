@@ -7,7 +7,7 @@ async function run() {
   fastify.register(slowDownPlugin)
 
   // create a route
-  fastify.get('/', async (req, reply) => reply.send('Hello from Fastify!'))
+  fastify.get('/', async (req, reply) => reply.send('Hello fastify-slow-down!'))
 
   // start server
   await fastify.listen({ port: 3000 })

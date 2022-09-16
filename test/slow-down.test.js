@@ -7,19 +7,19 @@ test('Should start to delay the API', async t => {
   // create the fastify server
   const fastify = Fastify()
   await fastify.register(slowDownPlugin)
-  fastify.get('/', async () => 'Hello from Fastify!')
+  fastify.get('/', async () => 'Hello fastify-slow-down!')
+  t.teardown(() => fastify.close())
 
   let res = await fastify.inject('/')
   t.equal(res.headers[HEADERS.limit], 0)
-  t.equal(res.headers[HEADERS.delay], 100)
+  t.equal(res.headers[HEADERS.delay], 1000)
 
   res = await fastify.inject('/')
-  t.equal(res.headers[HEADERS.delay], 200)
+  t.equal(res.headers[HEADERS.delay], 2000)
 
   res = await fastify.inject('/')
-  t.equal(res.headers[HEADERS.delay], 300)
+  t.equal(res.headers[HEADERS.delay], 3000)
 
   res = await fastify.inject('/')
-  t.equal(res.headers[HEADERS.delay], 400)
-  t.teardown(() => fastify.close())
+  t.equal(res.headers[HEADERS.delay], 4000)
 })
