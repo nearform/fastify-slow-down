@@ -9,8 +9,10 @@ npm i fastify-slow-down
 ```
 
 ## Usage
+
 Register the plugin.
-This plugin will add an `onRequest` hook to slow down replies if a client (based on their IP address) has made too many multiple requests in the given `timeWindow`.
+This plugin will add an `onRequest` hook to slow down replies if a client (based on their IP address by default) has made too many multiple requests in the given `timeWindow`.
+
 ```js
 import Fastify from 'fastify'
 import slowDownPlugin from 'fastify-slow-down'
@@ -21,7 +23,7 @@ const fastify = Fastify()
 fastify.register(slowDownPlugin)
 
 // create a route
-fastify.get('/', async (req, reply) => reply.send('Hello fastify-slow-down!'))
+fastify.get('/', async () => 'Hello from fastify-slow-down!')
 
 // start server
 await fastify.listen({ port: 3000 })
@@ -31,7 +33,50 @@ The response will have some additional headers:
 
 | Header | Description |
 |--------|-------------|
-|`x-slow-down-limit`     | how many requests in total the client can make until the server starts to slow down the response
-|`x-slow-down-remaining` | how many requests remain to the client in the `timeWindow`
-|`x-slow-down-delay` | the delayed is applied to this specific request
-|`x-slow-down-closed` | if the request is closed, this header is applied
+| `x-slow-down-limit` | how many requests in total the client can make until the server starts to slow down the response
+| `x-slow-down-remaining` | how many requests remain to the client in the `timeWindow`
+|`x-slow-down-delay` | how much delay (in milliseconds) has been applied to this request
+
+
+## Configuration
+
+| Name | Type | Default Value | Description |
+|------|------|---------------|-------------|
+| delay | string, number | 1 second | Base unit of time delay applied to requests. It can be expressed in milliseconds or as string in [`ms`](https://github.com/zeit/ms) format. Set to `0` to disable delaying. |
+| delayAfter | number | 5 | number of requests received during `timeWindow` before starting to delay responses. Set to `0` to disable delaying. |
+| timeWindow | string, number | 30 seconds | The duration of the time window during which request counts are kept in memory. It can be expressed in milliseconds or as a string in [`ms`](https://github.com/zeit/ms) format. Set to `0` to disable delaying. |
+| keyGenerator | function | (req) => req.ip | Function used to generate keys to uniquely identify requests coming from the same user
+
+## Example with configuration
+
+Registering the plugin with these options:
+```js
+fastify.register(slowDownPlugin, { 
+  delay: '10 seconds',
+  delayAfter: 10,
+  timeWindow: '10 minutes'
+})
+```
+
+A delay specified via the `delay` option will be applied to requests coming from the same IP address (by default) when more than `delayAfter` requests are received within the time specified in the `timeWindow` option.
+
+In 10 minutes the result of hitting the API will be: 
+
+* 1st request - no delay
+* 2nd request - no delay
+* 3rd request - no delay
+* ```...```
+* 10th request - no delay
+* 11th request - 10 seconds delay
+* 12th request - 20 seconds delay
+* 13th request - 30 seconds delay
+* ```...```
+* 20th request - 100 seconds delay
+
+After 10 minutes without hitting the API the results will be: 
+
+* 21th request - no delay
+* 21th request - no delay
+* ```...```
+* 30th request - no delay
+* 31th request - 10 seconds delay
