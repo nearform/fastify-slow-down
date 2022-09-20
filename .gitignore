@@ -8,3 +8,5 @@ node_modules
 
 # OS X
 .DS_Store
+.nyc_output
+coverage

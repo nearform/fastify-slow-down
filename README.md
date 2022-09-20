@@ -1,15 +1,82 @@
 ![CI](https://github.com/nearform/bench-template/actions/workflows/ci.yml/badge.svg?event=push)
 
-# Bench Template
-A feature-packed template to start a new repository on the bench, including:
+A slow down plugin for fastify
 
-- code linting with [ESlint](https://eslint.org) and [prettier](https://prettier.io)
-- pre-commit code linting and commit message linting with [husky](https://www.npmjs.com/package/husky) and [commitlint](https://commitlint.js.org/)
-- dependabot setup with automatic merging thanks to ["merge dependabot" GitHub action](https://github.com/fastify/github-action-merge-dependabot)
-- notifications about commits waiting to be released thanks to ["notify release" GitHub action](https://github.com/nearform/github-action-notify-release)
-- PRs' linked issues check with ["check linked issues" GitHub action](https://github.com/nearform/github-action-check-linked-issues)
-- Continuous Integration GitHub workflow
+## Installation
 
-## When you have already a repo
+```bash
+npm i fastify-slow-down
+```
 
-If you already created a repo and you want to add some of the features above to it, you can have a look at [NearForm MRM Preset](https://github.com/nearform/mrm-preset-nearform).
+## Usage
+
+Register the plugin.
+This plugin will add an `onRequest` hook to slow down replies if a client (based on their IP address by default) has made too many multiple requests in the given `timeWindow`.
+
+```js
+import Fastify from 'fastify'
+import slowDownPlugin from 'fastify-slow-down'
+
+const fastify = Fastify()
+
+// register the plugin
+fastify.register(slowDownPlugin)
+
+// create a route
+fastify.get('/', async () => 'Hello from fastify-slow-down!')
+
+// start server
+await fastify.listen({ port: 3000 })
+```
+
+The response will have some additional headers:
+
+| Header | Description |
+|--------|-------------|
+| `x-slow-down-limit` | how many requests in total the client can make until the server starts to slow down the response
+| `x-slow-down-remaining` | how many requests remain to the client in the `timeWindow`
+|`x-slow-down-delay` | how much delay (in milliseconds) has been applied to this request
+
+
+## Configuration
+
+| Name | Type | Default Value | Description |
+|------|------|---------------|-------------|
+| delay | string, number | 1 second | Base unit of time delay applied to requests. It can be expressed in milliseconds or as string in [`ms`](https://github.com/zeit/ms) format. Set to `0` to disable delaying. |
+| delayAfter | number | 5 | number of requests received during `timeWindow` before starting to delay responses. Set to `0` to disable delaying. |
+| timeWindow | string, number | 30 seconds | The duration of the time window during which request counts are kept in memory. It can be expressed in milliseconds or as a string in [`ms`](https://github.com/zeit/ms) format. Set to `0` to disable delaying. |
+| keyGenerator | function | (req) => req.ip | Function used to generate keys to uniquely identify requests coming from the same user
+
+## Example with configuration
+
+Registering the plugin with these options:
+```js
+fastify.register(slowDownPlugin, { 
+  delay: '10 seconds',
+  delayAfter: 10,
+  timeWindow: '10 minutes'
+})
+```
+
+A delay specified via the `delay` option will be applied to requests coming from the same IP address (by default) when more than `delayAfter` requests are received within the time specified in the `timeWindow` option.
+
+In 10 minutes the result of hitting the API will be: 
+
+* 1st request - no delay
+* 2nd request - no delay
+* 3rd request - no delay
+* ```...```
+* 10th request - no delay
+* 11th request - 10 seconds delay
+* 12th request - 20 seconds delay
+* 13th request - 30 seconds delay
+* ```...```
+* 20th request - 100 seconds delay
+
+After 10 minutes without hitting the API the results will be: 
+
+* 21th request - no delay
+* 21th request - no delay
+* ```...```
+* 30th request - no delay
+* 31th request - 10 seconds delay
