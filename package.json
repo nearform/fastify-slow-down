@@ -1,6 +1,6 @@
 {
   "name": "fastify-slow-down",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "A slow down plugin for fastify",
   "main": "index.js",
   "type": "module",
