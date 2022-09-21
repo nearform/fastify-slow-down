@@ -50,4 +50,19 @@ t.test('should not apply the delay header', async t => {
 
     t.equal(response.headers[HEADERS.delay], undefined)
   })
+
+  t.test('if maxDelay option is 0', async t => {
+    const fastify = Fastify()
+    await fastify.register(slowDownPlugin, {
+      maxDelay: 0
+    })
+    t.teardown(() => fastify.close())
+
+    fastify.get('/', async () => 'Hello from fastify-slow-down!')
+
+    await slowDownAPI(DEFAULT_OPTIONS.delayAfter, () => fastify.inject('/'))
+    const response = await fastify.inject('/')
+
+    t.equal(response.headers[HEADERS.delay], undefined)
+  })
 })
