@@ -1,14 +1,15 @@
 import fp from 'fastify-plugin'
 import onFinished from 'on-finished'
-import defaults from 'defaults'
 
 import { DEFAULT_OPTIONS, HEADERS } from './lib/constants.js'
 import { Store } from './lib/store.js'
 import { convertToMs, calculateDelay } from './lib/helpers.js'
 
 const slowDownPlugin = async (fastify, settings) => {
-  const options = defaults(settings, DEFAULT_OPTIONS)
+  const options = { ...DEFAULT_OPTIONS, ...settings }
   const store = new Store(convertToMs(options.timeWindow))
+
+  fastify.decorateRequest('slowDown', null)
 
   fastify.addHook('onClose', () => store.close())
 
@@ -16,14 +17,19 @@ const slowDownPlugin = async (fastify, settings) => {
     const requestCounter = store.incrementOnKey(options.keyGenerator(req))
     const delayMs = calculateDelay(requestCounter, options)
     const hasDelay = delayMs > 0
+    const remainingRequests = Math.max(options.delayAfter - requestCounter, 0)
 
     if (options.headers) {
       reply.header(HEADERS.limit, options.delayAfter)
-      reply.header(
-        HEADERS.remaining,
-        Math.max(options.delayAfter - requestCounter, 0)
-      )
+      reply.header(HEADERS.remaining, remainingRequests)
       hasDelay && reply.header(HEADERS.delay, delayMs)
+    }
+
+    req.slowDown = {
+      limit: options.delayAfter,
+      delay: hasDelay ? delayMs : undefined,
+      current: requestCounter,
+      remaining: remainingRequests
     }
 
     if (!hasDelay) {
