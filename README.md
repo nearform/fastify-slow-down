@@ -46,6 +46,7 @@ The response will have some additional headers:
 | delayAfter | number | 5 | number of requests received during `timeWindow` before starting to delay responses. Set to `0` to disable delaying. |
 | maxDelay | string, number | Infinity | the maximum value of delay that a request has after many consecutive attempts. It is an important option for the server when it is running behind a load balancer or reverse proxy, and has a request timeout. Set to `0` to disable delaying. |
 | timeWindow | string, number | 30 seconds | The duration of the time window during which request counts are kept in memory. It can be expressed in milliseconds or as a string in [`ms`](https://github.com/zeit/ms) format. Set to `0` to disable delaying. |
+| headers | boolean | true | flag to add custom headers `x-slow-down-limit`, `x-slow-down-remaining`, `x-slow-down-delay` for all server responses. |
 | keyGenerator | function | (req) => req.ip | Function used to generate keys to uniquely identify requests coming from the same user
 
 ## Example with configuration

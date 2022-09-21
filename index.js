@@ -15,17 +15,21 @@ const slowDownPlugin = async (fastify, settings) => {
   fastify.addHook('onRequest', async (req, reply) => {
     const requestCounter = store.incrementOnKey(options.keyGenerator(req))
     const delayMs = calculateDelay(requestCounter, options)
+    const hasDelay = delayMs > 0
 
-    reply.header(HEADERS.limit, options.delayAfter)
-    reply.header(
-      HEADERS.remaining,
-      Math.max(options.delayAfter - requestCounter, 0)
-    )
+    if (options.headers) {
+      reply.header(HEADERS.limit, options.delayAfter)
+      reply.header(
+        HEADERS.remaining,
+        Math.max(options.delayAfter - requestCounter, 0)
+      )
+      hasDelay && reply.header(HEADERS.delay, delayMs)
+    }
 
-    if (delayMs <= 0) {
+    if (!hasDelay) {
       return
     }
-    reply.header(HEADERS.delay, delayMs)
+
     let timeout, resolve
 
     const promise = new Promise(res => {
