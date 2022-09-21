@@ -44,6 +44,7 @@ The response will have some additional headers:
 |------|------|---------------|-------------|
 | delay | string, number | 1 second | Base unit of time delay applied to requests. It can be expressed in milliseconds or as string in [`ms`](https://github.com/zeit/ms) format. Set to `0` to disable delaying. |
 | delayAfter | number | 5 | number of requests received during `timeWindow` before starting to delay responses. Set to `0` to disable delaying. |
+| maxDelay | string, number | Infinity | the maximum value of delay that a request has after many consecutive attempts. It is an important option for the server when it is running behind a load balancer or reverse proxy, and has a request timeout. Set to `0` to disable delaying. |
 | timeWindow | string, number | 30 seconds | The duration of the time window during which request counts are kept in memory. It can be expressed in milliseconds or as a string in [`ms`](https://github.com/zeit/ms) format. Set to `0` to disable delaying. |
 | keyGenerator | function | (req) => req.ip | Function used to generate keys to uniquely identify requests coming from the same user
 
@@ -54,7 +55,8 @@ Registering the plugin with these options:
 fastify.register(slowDownPlugin, { 
   delay: '10 seconds',
   delayAfter: 10,
-  timeWindow: '10 minutes'
+  timeWindow: '10 minutes',
+  maxDelay: '100 seconds'
 })
 ```
 
@@ -72,6 +74,7 @@ In 10 minutes the result of hitting the API will be:
 * 13th request - 30 seconds delay
 * ```...```
 * 20th request - 100 seconds delay
+* 21st request - 100 seconds delay*
 
 After 10 minutes without hitting the API the results will be: 
 
@@ -80,3 +83,5 @@ After 10 minutes without hitting the API the results will be:
 * ```...```
 * 30th request - no delay
 * 31th request - 10 seconds delay
+
+*Delay remains the same because the value of `maxDelay` option is `100 seconds`
