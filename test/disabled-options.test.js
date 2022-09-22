@@ -2,7 +2,7 @@ import t from 'tap'
 import Fastify from 'fastify'
 
 import slowDownPlugin from '../index.js'
-import { slowDownAPI } from './helpers.js'
+import { internalFetch, slowDownAPI } from './helpers.js'
 import { HEADERS, DEFAULT_OPTIONS } from '../lib/constants.js'
 
 t.test('should not apply the delay header', async t => {
@@ -14,11 +14,17 @@ t.test('should not apply the delay header', async t => {
     t.teardown(() => fastify.close())
 
     fastify.get('/', async () => 'Hello from fastify-slow-down!')
+    await fastify.listen()
+    const port = fastify.server.address().port
 
-    await slowDownAPI(DEFAULT_OPTIONS.delayAfter, () => fastify.inject('/'))
-    const response = await fastify.inject('/')
+    await slowDownAPI(DEFAULT_OPTIONS.delayAfter, () =>
+      internalFetch(port, '/')
+    )
+    const response = await internalFetch(port, '/')
 
-    t.equal(response.headers[HEADERS.delay], undefined)
+    t.equal(await response.text(), 'Hello from fastify-slow-down!')
+    t.equal(response.status, 200)
+    t.equal(response.headers.get([HEADERS.delay]), null)
   })
 
   t.test('if delayAfter option is 0', async t => {
@@ -29,11 +35,17 @@ t.test('should not apply the delay header', async t => {
     t.teardown(() => fastify.close())
 
     fastify.get('/', async () => 'Hello from fastify-slow-down!')
+    await fastify.listen()
+    const port = fastify.server.address().port
 
-    await slowDownAPI(DEFAULT_OPTIONS.delayAfter, () => fastify.inject('/'))
-    const response = await fastify.inject('/')
+    await slowDownAPI(DEFAULT_OPTIONS.delayAfter, () =>
+      internalFetch(port, '/')
+    )
+    const response = await internalFetch(port, '/')
 
-    t.equal(response.headers[HEADERS.delay], undefined)
+    t.equal(await response.text(), 'Hello from fastify-slow-down!')
+    t.equal(response.status, 200)
+    t.equal(response.headers.get([HEADERS.delay]), null)
   })
 
   t.test('if timeWindow option is 0', async t => {
@@ -44,11 +56,17 @@ t.test('should not apply the delay header', async t => {
     t.teardown(() => fastify.close())
 
     fastify.get('/', async () => 'Hello from fastify-slow-down!')
+    await fastify.listen()
+    const port = fastify.server.address().port
 
-    await slowDownAPI(DEFAULT_OPTIONS.delayAfter, () => fastify.inject('/'))
-    const response = await fastify.inject('/')
+    await slowDownAPI(DEFAULT_OPTIONS.delayAfter, () =>
+      internalFetch(port, '/')
+    )
+    const response = await internalFetch(port, '/')
 
-    t.equal(response.headers[HEADERS.delay], undefined)
+    t.equal(await response.text(), 'Hello from fastify-slow-down!')
+    t.equal(response.status, 200)
+    t.equal(response.headers.get([HEADERS.delay]), null)
   })
 
   t.test('if maxDelay option is 0', async t => {
@@ -59,11 +77,17 @@ t.test('should not apply the delay header', async t => {
     t.teardown(() => fastify.close())
 
     fastify.get('/', async () => 'Hello from fastify-slow-down!')
+    await fastify.listen()
+    const port = fastify.server.address().port
 
-    await slowDownAPI(DEFAULT_OPTIONS.delayAfter, () => fastify.inject('/'))
-    const response = await fastify.inject('/')
+    await slowDownAPI(DEFAULT_OPTIONS.delayAfter, () =>
+      internalFetch(port, '/')
+    )
+    const response = await internalFetch(port, '/')
 
-    t.equal(response.headers[HEADERS.delay], undefined)
+    t.equal(await response.text(), 'Hello from fastify-slow-down!')
+    t.equal(response.status, 200)
+    t.equal(response.headers.get([HEADERS.delay]), null)
   })
 })
 
@@ -75,13 +99,13 @@ t.test('should not apply headers if the headers option is false', async t => {
   t.teardown(() => fastify.close())
 
   fastify.get('/', async () => 'Hello from fastify-slow-down!')
+  await fastify.listen()
+  const port = fastify.server.address().port
 
-  await slowDownAPI(DEFAULT_OPTIONS.delayAfter, () => fastify.inject('/'))
-  const response = await fastify.inject('/')
+  await slowDownAPI(DEFAULT_OPTIONS.delayAfter, () => internalFetch(port, '/'))
+  const response = await internalFetch(port, '/')
 
-  t.notHas(response.headers, {
-    [HEADERS.limit]: String,
-    [HEADERS.remaining]: String,
-    [HEADERS.delay]: String
-  })
+  t.equal(response.headers.get([HEADERS.limit]), null)
+  t.equal(response.headers.get([HEADERS.remaining]), null)
+  t.equal(response.headers.get([HEADERS.delay]), null)
 })

@@ -3,7 +3,7 @@ import Fastify from 'fastify'
 import FakeTimers from '@sinonjs/fake-timers'
 
 import slowDownPlugin from '../index.js'
-import { slowDownAPI } from './helpers.js'
+import { internalFetch, slowDownAPI } from './helpers.js'
 import { convertToMs } from '../lib/helpers.js'
 import { DEFAULT_OPTIONS, HEADERS } from '../lib/constants.js'
 
@@ -17,12 +17,19 @@ test('should reset the delay', async t => {
   })
 
   fastify.get('/', async () => 'Hello from fastify-slow-down!')
+  await fastify.listen()
+  const port = fastify.server.address().port
 
-  await slowDownAPI(DEFAULT_OPTIONS.delayAfter, () => fastify.inject('/'))
+  await slowDownAPI(DEFAULT_OPTIONS.delayAfter, () => internalFetch(port, '/'))
 
   clock.tick(convertToMs(DEFAULT_OPTIONS.timeWindow))
 
-  const response = await fastify.inject('/')
-  t.equal(response.headers[HEADERS.remaining], DEFAULT_OPTIONS.delayAfter - 1)
-  t.equal(response.headers[HEADERS.delay], undefined)
+  const response = await internalFetch(port, '/')
+
+  t.equal(await response.text(), 'Hello from fastify-slow-down!')
+  t.equal(
+    response.headers.get([HEADERS.remaining]),
+    (DEFAULT_OPTIONS.delayAfter - 1).toString()
+  )
+  t.equal(response.headers.get([HEADERS.delay]), null)
 })

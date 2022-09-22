@@ -3,6 +3,7 @@ import Fastify from 'fastify'
 
 import slowDownPlugin from '../index.js'
 import { HEADERS } from '../lib/constants.js'
+import { internalFetch } from './helpers.js'
 
 test('should work with provided options', async t => {
   const fastify = Fastify()
@@ -15,10 +16,13 @@ test('should work with provided options', async t => {
   t.teardown(() => fastify.close())
 
   fastify.get('/', async () => 'Hello from fastify-slow-down!')
+  await fastify.listen()
+  const port = fastify.server.address().port
 
-  await fastify.inject('/')
-  const response = await fastify.inject('/')
+  await internalFetch(port, '/')
+  const response = await internalFetch(port, '/')
 
-  t.equal(response.statusCode, 200)
-  t.equal(response.headers[HEADERS.delay], 1000)
+  t.equal(await response.text(), 'Hello from fastify-slow-down!')
+  t.equal(response.status, 200)
+  t.equal(response.headers.get([HEADERS.delay]), '1000')
 })
