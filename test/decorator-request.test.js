@@ -1,10 +1,9 @@
 import { test } from 'tap'
 import Fastify from 'fastify'
-import supertest from 'supertest'
 
 import slowDownPlugin from '../index.js'
 import { DEFAULT_OPTIONS } from '../lib/constants.js'
-import { slowDownAPI } from './helpers.js'
+import { internalFetch, slowDownAPI } from './helpers.js'
 import { convertToMs } from '../lib/helpers.js'
 
 test('should contain the slowDown request decorator', async t => {
@@ -14,8 +13,10 @@ test('should contain the slowDown request decorator', async t => {
     t.teardown(() => fastify.close())
 
     fastify.get('/', async req => req.slowDown)
+    await fastify.listen()
+    const port = fastify.server.address().port
 
-    const responseBody = await (await fastify.inject('/')).json()
+    const responseBody = await (await internalFetch(port, '/')).json()
 
     t.has(responseBody, {
       limit: DEFAULT_OPTIONS.delayAfter,
@@ -31,15 +32,15 @@ test('should contain the slowDown request decorator', async t => {
     t.teardown(() => fastify.close())
 
     fastify.get('/', async req => req.slowDown)
-
-    await fastify.ready()
+    await fastify.listen()
+    const port = fastify.server.address().port
 
     await slowDownAPI(DEFAULT_OPTIONS.delayAfter, () =>
-      supertest(fastify.server).get('/')
+      internalFetch(port, '/')
     )
-    const response = await supertest(fastify.server).get('/')
+    const responseBody = await (await internalFetch(port, '/')).json()
 
-    t.has(response.body, {
+    t.has(responseBody, {
       limit: DEFAULT_OPTIONS.delayAfter,
       current: DEFAULT_OPTIONS.delayAfter + 1,
       remaining: 0,

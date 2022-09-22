@@ -39,7 +39,6 @@
     "husky": "^8.0.1",
     "lint-staged": "^13.0.3",
     "prettier": "^2.7.1",
-    "supertest": "^6.2.4",
     "tap": "^16.0.0"
   },
   "lint-staged": {
