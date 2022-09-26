@@ -56,6 +56,7 @@ The response will have some additional headers:
 | inMemoryCacheSize | number            | 5000            | The maximum number of items that will be stored in the in-memory cache _(this plugin internally uses a lru cache to handle the clients, you can change the size of the cache with this option)_                                                |
 | headers           | boolean           | true            | flag to add custom headers `x-slow-down-limit`, `x-slow-down-remaining`, `x-slow-down-delay` for all server responses.                                                                                                                         |
 | keyGenerator      | function          | (req) => req.ip | Function used to generate keys to uniquely identify requests coming from the same user                                                                                                                                                         |
+| onLimitReached    | function          | undefined       | Function that gets called the first time the limit is reached within `timeWindow`.                                                                                                                                                             |
 
 ## Example with configuration
 

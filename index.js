@@ -2,8 +2,8 @@ import fp from 'fastify-plugin'
 import onFinished from 'on-finished'
 
 import { DEFAULT_OPTIONS, HEADERS } from './lib/constants.js'
+import { calculateDelay, convertToMs } from './lib/helpers.js'
 import { Store } from './lib/store.js'
-import { convertToMs, calculateDelay } from './lib/helpers.js'
 
 const slowDownPlugin = async (fastify, settings) => {
   const options = { ...DEFAULT_OPTIONS, ...settings }
@@ -39,6 +39,10 @@ const slowDownPlugin = async (fastify, settings) => {
 
     if (!hasDelay) {
       return
+    }
+
+    if (requestCounter - 1 === options.delayAfter) {
+      options.onLimitReached(req, reply, options)
     }
 
     let timeout, resolve
