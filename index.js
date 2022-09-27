@@ -17,9 +17,12 @@ const slowDownPlugin = async (fastify, settings) => {
   fastify.addHook('onClose', () => store.close())
 
   fastify.addHook('onRequest', async (req, reply) => {
-    const { counter: requestCounter } = await store.incrementOnKey(
-      options.keyGenerator(req)
-    )
+    if (options.skip(req, reply)) {
+      return
+    }
+
+    const key = options.keyGenerator(req)
+    const { counter: requestCounter } = store.incrementOnKey(key)
     const delayMs = calculateDelay(requestCounter, options)
     const hasDelay = delayMs > 0
     const remainingRequests = Math.max(options.delayAfter - requestCounter, 0)
@@ -35,6 +38,22 @@ const slowDownPlugin = async (fastify, settings) => {
       delay: hasDelay ? delayMs : undefined,
       current: requestCounter,
       remaining: remainingRequests
+    }
+
+    if (options.skipFailedRequests) {
+      onFinished(reply.raw, err => {
+        if (err || reply.statusCode >= 400) {
+          store.decrementOnKey(key)
+        }
+      })
+    }
+
+    if (options.skipSuccessfulRequests) {
+      onFinished(reply.raw, err => {
+        if (!err && reply.statusCode < 400) {
+          store.decrementOnKey(key)
+        }
+      })
     }
 
     if (!hasDelay) {
