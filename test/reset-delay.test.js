@@ -1,4 +1,4 @@
-import { test, beforeEach, only } from 'tap'
+import { test, beforeEach } from 'tap'
 import Fastify from 'fastify'
 import FakeTimers from '@sinonjs/fake-timers'
 
@@ -41,7 +41,7 @@ test('should reset the delay', async t => {
   t.equal(response.headers.get([HEADERS.delay]), null)
 })
 
-only('should reset the delay only for a specific request', async t => {
+test('should reset the delay only for a specific request', async t => {
   fastify.get('/', async () => APP_RESPONSE_TEXT)
   await fastify.listen()
   const port = fastify.server.address().port
