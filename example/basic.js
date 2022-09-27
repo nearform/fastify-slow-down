@@ -1,5 +1,5 @@
 import Fastify from 'fastify'
-import slowDownPlugin from 'fastify-slow-down'
+import slowDownPlugin from '../index.js'
 
 async function run() {
   const fastify = Fastify({ logger: true })

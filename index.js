@@ -14,7 +14,9 @@ const slowDownPlugin = async (fastify, settings) => {
   fastify.addHook('onClose', () => store.close())
 
   fastify.addHook('onRequest', async (req, reply) => {
-    const requestCounter = store.incrementOnKey(options.keyGenerator(req))
+    const { counter: requestCounter } = await store.incrementOnKey(
+      options.keyGenerator(req)
+    )
     const delayMs = calculateDelay(requestCounter, options)
     const hasDelay = delayMs > 0
     const remainingRequests = Math.max(options.delayAfter - requestCounter, 0)
