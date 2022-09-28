@@ -1,8 +1,4 @@
-import {
-  FastifyPluginAsync,
-  FastifyPluginCallback,
-  FastifyRequest
-} from 'fastify'
+import { FastifyPluginAsync, FastifyReply, FastifyRequest } from 'fastify'
 
 type FastifySlowDownOptions = {
   delay?: string | number
@@ -12,6 +8,10 @@ type FastifySlowDownOptions = {
   timeWindow?: string | number
   headers?: boolean
   keyGenerator?: (req: FastifyRequest) => any
+  onLimitReached?: (req: FastifyRequest, reply: FastifyReply) => void
+  skipFailedRequests?: boolean
+  skipSuccessfulRequests?: boolean
+  skip?: (req: FastifyRequest, reply: FastifyReply) => boolean
 }
 
 declare const fastifySlowDown: FastifyPluginAsync<FastifySlowDownOptions>
