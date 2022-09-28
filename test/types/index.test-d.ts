@@ -9,6 +9,8 @@ fastify.register(fastifySlowDown)
 fastify.register(fastifySlowDown, {
   delay: 1,
   delayAfter: 1,
+  intervalTimeExpiredKeys: '15 minutes',
+  cacheSize: 5000,
   headers: true,
   maxDelay: '1 minute',
   timeWindow: '5 minutes',
