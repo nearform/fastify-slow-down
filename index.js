@@ -9,7 +9,7 @@ const slowDownPlugin = async (fastify, settings) => {
   const options = { ...DEFAULT_OPTIONS, ...settings }
   const store = new Store(
     convertToMs(options.timeWindow),
-    convertToMs(options.intevalTimeExpiredKeys),
+    convertToMs(options.intervalTimeExpiredKeys),
     options.cacheSize
   )
 
