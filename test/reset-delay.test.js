@@ -1,4 +1,4 @@
-import { test, beforeEach } from 'tap'
+import { test } from 'tap'
 import Fastify from 'fastify'
 import FakeTimers from '@sinonjs/fake-timers'
 
@@ -7,23 +7,26 @@ import { internalFetch, slowDownAPI } from './helpers.js'
 import { convertToMs } from '../lib/helpers.js'
 import { DEFAULT_OPTIONS, HEADERS } from '../lib/constants.js'
 
-let fastify = null
-let clock = null
-
 const APP_RESPONSE_TEXT = 'Hello from the fastify-slow-down plugin'
 
-beforeEach(async t => {
-  fastify = Fastify()
-  clock = FakeTimers.install()
-  await fastify.register(slowDownPlugin)
+function setup() {
+  const fastify = Fastify()
+  fastify.register(slowDownPlugin)
+  fastify.get('/', async () => APP_RESPONSE_TEXT)
+  return fastify
+}
+
+function teardownSetup(t, clock, fastify) {
   t.teardown(() => {
     fastify.close()
     clock.uninstall()
   })
-})
+}
 
 test('should reset the delay', async t => {
-  fastify.get('/', async () => APP_RESPONSE_TEXT)
+  const fastify = setup()
+  const clock = FakeTimers.install()
+  teardownSetup(t, clock, fastify)
   await fastify.listen()
   const port = fastify.server.address().port
 
@@ -42,7 +45,10 @@ test('should reset the delay', async t => {
 })
 
 test('should reset the delay only for a specific request', async t => {
-  fastify.get('/', async () => APP_RESPONSE_TEXT)
+  const fastify = setup()
+  const clock = FakeTimers.install()
+  teardownSetup(t, clock, fastify)
+
   await fastify.listen()
   const port = fastify.server.address().port
 

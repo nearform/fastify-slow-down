@@ -14,7 +14,7 @@
     "lint": "eslint .",
     "run:example": "node example/basic.js",
     "test": "npm run test:unit && npm run test:types",
-    "test:unit": "c8 --100 tap -J --no-coverage test/*.test.js",
+    "test:unit": "c8 --100 tap --no-coverage test/*.test.js",
     "test:types": "tsd",
     "prepare": "husky install"
   },
