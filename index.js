@@ -7,14 +7,19 @@ import { convertToMs, calculateDelay } from './lib/helpers.js'
 
 const slowDownPlugin = async (fastify, settings) => {
   const options = { ...DEFAULT_OPTIONS, ...settings }
-  const store = new Store(convertToMs(options.timeWindow))
+  const store = new Store(
+    convertToMs(options.timeWindow),
+    options.inMemoryCacheSize
+  )
 
   fastify.decorateRequest('slowDown', null)
 
   fastify.addHook('onClose', () => store.close())
 
   fastify.addHook('onRequest', async (req, reply) => {
-    const requestCounter = store.incrementOnKey(options.keyGenerator(req))
+    const { counter: requestCounter } = await store.incrementOnKey(
+      options.keyGenerator(req)
+    )
     const delayMs = calculateDelay(requestCounter, options)
     const hasDelay = delayMs > 0
     const remainingRequests = Math.max(options.delayAfter - requestCounter, 0)

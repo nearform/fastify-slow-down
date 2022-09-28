@@ -9,6 +9,7 @@ fastify.register(fastifySlowDown)
 fastify.register(fastifySlowDown, {
   delay: 1,
   delayAfter: 1,
+  inMemoryCacheSize: 5000,
   headers: true,
   maxDelay: '1 minute',
   timeWindow: '5 minutes',
