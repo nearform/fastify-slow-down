@@ -13,6 +13,7 @@
   "scripts": {
     "lint": "eslint .",
     "run:example": "node example/basic.js",
+    "redis:example": "node example/basic-redis.js",
     "test": "npm run test:unit && npm run test:types",
     "test:unit": "c8 --100 tap --jobs=3 --no-coverage test/*.test.js",
     "test:types": "tsd",
@@ -42,6 +43,7 @@
     "eslint-plugin-prettier": "^4.2.1",
     "fastify": "^4.5.3",
     "husky": "^8.0.1",
+    "ioredis": "^5.2.3",
     "lint-staged": "^13.0.3",
     "prettier": "^2.7.1",
     "sinon": "^14.0.0",
