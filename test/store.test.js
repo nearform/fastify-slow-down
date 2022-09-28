@@ -9,13 +9,14 @@ test('it should delete expired keys with a given interval', async t => {
   const clock = FakeTimers.install()
   const store = new Store(
     convertToMs(DEFAULT_OPTIONS.timeWindow),
-    convertToMs(DEFAULT_OPTIONS.intervalTimeExpiredKeys)
+    convertToMs(DEFAULT_OPTIONS.evictionInterval),
+    DEFAULT_OPTIONS.inMemoryCacheSize
   )
   await slowDownAPI(DEFAULT_OPTIONS.delayAfter, () => store.incrementOnKey('1'))
 
   await store.incrementOnKey('2')
   clock.tick(
-    convertToMs(DEFAULT_OPTIONS.intervalTimeExpiredKeys) -
+    convertToMs(DEFAULT_OPTIONS.evictionInterval) -
       convertToMs(DEFAULT_OPTIONS.timeWindow) / 3
   )
   await store.incrementOnKey('1')

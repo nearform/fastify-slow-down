@@ -6,8 +6,8 @@ import {
 
 type FastifySlowDownOptions = {
   delay?: string | number
-  intervalTimeExpiredKeys?: string | number
-  cacheSize?: string | number
+  evictionInterval?: string | number
+  inMemoryCacheSize?: string | number
   delayAfter?: number
   maxDelay?: string | number
   timeWindow?: string | number
