@@ -61,7 +61,7 @@ const slowDownPlugin = async (fastify, settings) => {
     }
 
     if (requestCounter - 1 === options.delayAfter) {
-      options.onLimitReached(req, reply, options)
+      options.onLimitReached?.(req, reply, options)
     }
 
     let timeout, resolve
