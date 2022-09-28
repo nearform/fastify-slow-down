@@ -9,9 +9,9 @@ import { DEFAULT_OPTIONS, HEADERS } from '../lib/constants.js'
 
 const APP_RESPONSE_TEXT = 'Hello from the fastify-slow-down plugin'
 
-function setup() {
+async function setup() {
   const fastify = Fastify()
-  fastify.register(slowDownPlugin)
+  await fastify.register(slowDownPlugin)
   fastify.get('/', async () => APP_RESPONSE_TEXT)
   return fastify
 }
@@ -24,7 +24,7 @@ function teardownSetup(t, clock, fastify) {
 }
 
 test('should reset the delay', async t => {
-  const fastify = setup()
+  const fastify = await setup()
   const clock = FakeTimers.install()
   teardownSetup(t, clock, fastify)
   await fastify.listen()
@@ -45,7 +45,7 @@ test('should reset the delay', async t => {
 })
 
 test('should reset the delay only for a specific request', async t => {
-  const fastify = setup()
+  const fastify = await setup()
   const clock = FakeTimers.install()
   teardownSetup(t, clock, fastify)
 
