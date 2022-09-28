@@ -17,7 +17,7 @@ const slowDownPlugin = async (fastify, settings) => {
   fastify.addHook('onClose', () => store.close())
 
   fastify.addHook('onRequest', async (req, reply) => {
-    if (options.skip(req, reply)) {
+    if (options.skip?.(req, reply)) {
       return
     }
 
