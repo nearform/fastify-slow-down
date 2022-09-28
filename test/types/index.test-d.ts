@@ -9,7 +9,6 @@ fastify.register(fastifySlowDown)
 fastify.register(fastifySlowDown, {
   delay: 1,
   delayAfter: 1,
-  evictionInterval: '15 minutes',
   inMemoryCacheSize: 5000,
   headers: true,
   maxDelay: '1 minute',

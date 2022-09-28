@@ -9,7 +9,6 @@ const slowDownPlugin = async (fastify, settings) => {
   const options = { ...DEFAULT_OPTIONS, ...settings }
   const store = new Store(
     convertToMs(options.timeWindow),
-    convertToMs(options.evictionInterval),
     options.inMemoryCacheSize
   )
 
