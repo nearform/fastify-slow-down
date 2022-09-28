@@ -15,7 +15,7 @@ test('should contain the slowDown request decorator', async t => {
     fastify.get('/', async req => req.slowDown)
     await fastify.listen()
     const port = fastify.server.address().port
-    console.log('port: ', port)
+
     const responseBody = await (await internalFetch(port, '/')).json()
 
     t.has(responseBody, {
