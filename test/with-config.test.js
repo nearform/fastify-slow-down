@@ -18,6 +18,7 @@ test('should work with provided options', async t => {
   fastify.get('/', async () => 'Hello from fastify-slow-down!')
   await fastify.listen()
   const port = fastify.server.address().port
+  console.log('port: ', port)
 
   await internalFetch(port, '/')
   const response = await internalFetch(port, '/')

@@ -13,7 +13,7 @@ test('should decrement the remaining header', async t => {
   fastify.get('/', async () => 'Hello from fastify-slow-down!')
   await fastify.listen()
   const port = fastify.server.address().port
-
+  console.log('port: ', port)
   for (let i = 1; i <= DEFAULT_OPTIONS.delayAfter; i++) {
     const response = await internalFetch(port, '/')
 

@@ -16,6 +16,7 @@ t.test('should not apply the delay header', async t => {
     fastify.get('/', async () => 'Hello from fastify-slow-down!')
     await fastify.listen()
     const port = fastify.server.address().port
+    console.log('port: ', port)
 
     await slowDownAPI(DEFAULT_OPTIONS.delayAfter, () =>
       internalFetch(port, '/')

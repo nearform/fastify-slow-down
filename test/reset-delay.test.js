@@ -29,6 +29,7 @@ test('should reset the delay', async t => {
   teardownSetup(t, clock, fastify)
   await fastify.listen()
   const port = fastify.server.address().port
+  console.log('port other test: ', port)
 
   await slowDownAPI(DEFAULT_OPTIONS.delayAfter, () => internalFetch(port, '/'))
 
