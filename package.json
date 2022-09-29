@@ -11,6 +11,7 @@
     "lib"
   ],
   "scripts": {
+    "redis": "docker run -p 6379:6379 --name rate-limit-redis -d --rm redis",
     "lint": "eslint .",
     "run:example": "node example/basic.js",
     "redis:example": "node example/basic-redis.js",

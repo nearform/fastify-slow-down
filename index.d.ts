@@ -4,6 +4,7 @@ type FastifySlowDownOptions = {
   delay?: string | number
   inMemoryCacheSize?: number
   delayAfter?: number
+  redis?: any
   maxDelay?: string | number
   timeWindow?: string | number
   headers?: boolean
