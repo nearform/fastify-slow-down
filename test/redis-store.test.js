@@ -33,6 +33,65 @@ test('should increment counter in a specified key and return stored value', asyn
   t.not(ttlAfter, convertToMs(DEFAULT_OPTIONS.timeWindow))
 })
 
+test('should decrement counter for a given key if counter is greater than 0 and otherwise should have no effects', async t => {
+  const redis = new Redis({ host: REDIS_HOST })
+  t.teardown(async () => {
+    await redis.flushall()
+    await redis.quit()
+  })
+  const store = new RedisStore(
+    redis,
+    'fastify-slow-down',
+    convertToMs(DEFAULT_OPTIONS.timeWindow)
+  )
+  const key = '1'
+
+  await store.decrementOnKey(key)
+  await store.incrementOnKey(key)
+  const { counter: firstResult } = await store.getValue(key)
+
+  t.equal(firstResult, 1)
+
+  await store.decrementOnKey(key)
+  await store.decrementOnKey(key)
+  await store.decrementOnKey(key)
+  await store.decrementOnKey(key)
+  const { counter: secondResult } = await store.getValue(key)
+
+  t.equal(secondResult, 0)
+})
+
+test('should return counter for a given key', async t => {
+  const redis = new Redis({ host: REDIS_HOST })
+  const store = new RedisStore(
+    redis,
+    'fastify-slow-down',
+    convertToMs(DEFAULT_OPTIONS.timeWindow)
+  )
+  t.teardown(async () => {
+    await redis.flushall()
+    await redis.quit()
+  })
+  await store.incrementOnKey('1')
+  const { counter } = await store.getValue('1')
+  t.equal(counter, 1)
+})
+
+test('should return a default counter for a given key if key is not set', async t => {
+  const redis = new Redis({ host: REDIS_HOST })
+  const store = new RedisStore(
+    redis,
+    'fastify-slow-down',
+    convertToMs(DEFAULT_OPTIONS.timeWindow)
+  )
+  t.teardown(async () => {
+    await redis.flushall()
+    await redis.quit()
+  })
+  const { counter } = await store.getValue('1')
+  t.equal(counter, 0)
+})
+
 test('should have called the redis quit method when store has been closed', async t => {
   const redis = new Redis({ host: REDIS_HOST })
 

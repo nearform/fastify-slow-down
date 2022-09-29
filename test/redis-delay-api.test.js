@@ -1,4 +1,4 @@
-import t from 'tap'
+import { test } from 'tap'
 import Fastify from 'fastify'
 import sinon from 'sinon'
 import slowDownPlugin from '../index.js'
@@ -9,7 +9,7 @@ import { internalFetch, slowDownAPI } from './helpers.js'
 import Redis from 'ioredis'
 
 const REDIS_HOST = '127.0.0.1'
-t.test('should delay the API using redis', async t => {
+test('should delay the API using redis with basic options', async t => {
   const closeSpy = sinon.spy(RedisStore.prototype, 'close')
   const redis = new Redis({ host: REDIS_HOST })
   const fastify = Fastify()

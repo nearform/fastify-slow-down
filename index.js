@@ -9,14 +9,12 @@ import { Store } from './lib/store.js'
 const slowDownPlugin = async (fastify, settings) => {
   const options = { ...DEFAULT_OPTIONS, ...settings }
   const store = settings.redis
-  ? new RedisStore(
-      settings.redis,
-      'fastify-slow-down',
-      convertToMs(options.timeWindow)
-    ): new Store(
-    convertToMs(options.timeWindow),
-    options.inMemoryCacheSize
-  )
+    ? new RedisStore(
+        settings.redis,
+        'fastify-slow-down',
+        convertToMs(options.timeWindow)
+      )
+    : new Store(convertToMs(options.timeWindow), options.inMemoryCacheSize)
 
   fastify.decorateRequest('slowDown', null)
 
