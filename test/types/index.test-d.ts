@@ -15,6 +15,12 @@ fastify.register(fastifySlowDown, {
   timeWindow: '5 minutes',
   keyGenerator(req) {
     req.ip
+  },
+  onLimitReached(req, reply) {},
+  skipFailedRequests: false,
+  skipSuccessfulRequests: true,
+  skip(req, reply) {
+    return false
   }
 })
 

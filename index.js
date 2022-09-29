@@ -2,8 +2,8 @@ import fp from 'fastify-plugin'
 import onFinished from 'on-finished'
 
 import { DEFAULT_OPTIONS, HEADERS } from './lib/constants.js'
+import { calculateDelay, convertToMs } from './lib/helpers.js'
 import { Store } from './lib/store.js'
-import { convertToMs, calculateDelay } from './lib/helpers.js'
 
 const slowDownPlugin = async (fastify, settings) => {
   const options = { ...DEFAULT_OPTIONS, ...settings }
@@ -17,9 +17,12 @@ const slowDownPlugin = async (fastify, settings) => {
   fastify.addHook('onClose', () => store.close())
 
   fastify.addHook('onRequest', async (req, reply) => {
-    const { counter: requestCounter } = await store.incrementOnKey(
-      options.keyGenerator(req)
-    )
+    if (options.skip?.(req, reply)) {
+      return
+    }
+
+    const key = options.keyGenerator(req)
+    const { counter: requestCounter } = store.incrementOnKey(key)
     const delayMs = calculateDelay(requestCounter, options)
     const hasDelay = delayMs > 0
     const remainingRequests = Math.max(options.delayAfter - requestCounter, 0)
@@ -37,8 +40,28 @@ const slowDownPlugin = async (fastify, settings) => {
       remaining: remainingRequests
     }
 
+    if (options.skipFailedRequests) {
+      onFinished(reply.raw, err => {
+        if (err || reply.statusCode >= 400) {
+          store.decrementOnKey(key)
+        }
+      })
+    }
+
+    if (options.skipSuccessfulRequests) {
+      onFinished(reply.raw, err => {
+        if (!err && reply.statusCode < 400) {
+          store.decrementOnKey(key)
+        }
+      })
+    }
+
     if (!hasDelay) {
       return
+    }
+
+    if (requestCounter - 1 === options.delayAfter) {
+      options.onLimitReached?.(req, reply, options)
     }
 
     let timeout, resolve
