@@ -2,9 +2,9 @@ import fp from 'fastify-plugin'
 import onFinished from 'on-finished'
 
 import { RedisStore } from './lib/redisStore.js'
+import { LocalStore } from './lib/localStore.js'
 import { DEFAULT_OPTIONS, HEADERS } from './lib/constants.js'
 import { calculateDelay, convertToMs } from './lib/helpers.js'
-import { Store } from './lib/store.js'
 
 const slowDownPlugin = async (fastify, settings) => {
   const options = { ...DEFAULT_OPTIONS, ...settings }
@@ -14,7 +14,7 @@ const slowDownPlugin = async (fastify, settings) => {
         'fastify-slow-down',
         convertToMs(options.timeWindow)
       )
-    : new Store(convertToMs(options.timeWindow), options.inMemoryCacheSize)
+    : new LocalStore(convertToMs(options.timeWindow), options.inMemoryCacheSize)
 
   fastify.decorateRequest('slowDown', null)
 

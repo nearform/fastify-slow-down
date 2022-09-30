@@ -1,9 +1,9 @@
 import { test } from 'tap'
 
-import { Store } from '../lib/store.js'
+import { LocalStore } from '../lib/localStore.js'
 
 test('the store getValue method should return current counter for a given key', async t => {
-  const store = new Store(10000, 1000)
+  const store = new LocalStore(10000, 1000)
   const key = 'key'
   store.incrementOnKey(key)
   const { counter } = store.getValue(key)
@@ -11,14 +11,14 @@ test('the store getValue method should return current counter for a given key', 
 })
 
 test('the store getValue method should return default counter for a given key if the key is not set', async t => {
-  const store = new Store(10000, 1000)
+  const store = new LocalStore(10000, 1000)
   const key = 'key'
   const { counter } = store.getValue(key)
   t.equal(counter, 0)
 })
 
 test('the store decrementOnKey method should have no effect if the key is not set or is already zero', async t => {
-  const store = new Store(10000, 1000)
+  const store = new LocalStore(10000, 1000)
   const key = 'key'
 
   store.decrementOnKey(key)
