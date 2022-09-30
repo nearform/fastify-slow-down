@@ -1,11 +1,10 @@
 import { FastifyPluginAsync, FastifyReply, FastifyRequest } from 'fastify'
-import type Redis from 'ioredis'
 
 type FastifySlowDownOptions = {
   delay?: string | number
   inMemoryCacheSize?: number
   delayAfter?: number
-  redis?: Redis
+  redis?: any
   maxDelay?: string | number
   timeWindow?: string | number
   headers?: boolean
