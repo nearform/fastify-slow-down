@@ -12,6 +12,13 @@ const slowDownPlugin = async (fastify, settings) => {
     options.inMemoryCacheSize
   )
 
+  const applySkip = async (req, reply, key) => {
+    await store.decrementOnKey(key)
+    if (options.headers && req.slowDown.remaining < options.delayAfter) {
+      reply.header(HEADERS.remaining, req.slowDown.remaining + 1)
+    }
+  }
+
   fastify.decorateRequest('slowDown', null)
 
   fastify.addHook('onClose', () => store.close())
@@ -71,17 +78,11 @@ const slowDownPlugin = async (fastify, settings) => {
   fastify.addHook('onSend', async (req, reply) => {
     const key = options.keyGenerator(req)
     if (options.skipFailedRequests && reply.statusCode >= 400) {
-      await store.decrementOnKey(key)
-      if (options.headers && req.slowDown.remaining < options.delayAfter) {
-        reply.header(HEADERS.remaining, req.slowDown.remaining + 1)
-      }
+      await applySkip(req, reply, key)
     }
 
     if (options.skipSuccessfulRequests && reply.statusCode < 400) {
-      await store.decrementOnKey(key)
-      if (options.headers && req.slowDown.remaining < options.delayAfter) {
-        reply.header(HEADERS.remaining, req.slowDown.remaining + 1)
-      }
+      await applySkip(req, reply, key)
     }
   })
 }
