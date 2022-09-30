@@ -16,6 +16,13 @@ const slowDownPlugin = async (fastify, settings) => {
       )
     : new LocalStore(convertToMs(options.timeWindow), options.inMemoryCacheSize)
 
+  const applySkip = async (req, reply, key) => {
+    await store.decrementOnKey(key)
+    if (options.headers && req.slowDown.remaining < options.delayAfter) {
+      reply.header(HEADERS.remaining, req.slowDown.remaining + 1)
+    }
+  }
+
   fastify.decorateRequest('slowDown', null)
 
   fastify.addHook('onClose', () => store.close())
@@ -44,22 +51,6 @@ const slowDownPlugin = async (fastify, settings) => {
       remaining: remainingRequests
     }
 
-    if (options.skipFailedRequests) {
-      onFinished(reply.raw, err => {
-        if (err || reply.statusCode >= 400) {
-          store.decrementOnKey(key)
-        }
-      })
-    }
-
-    if (options.skipSuccessfulRequests) {
-      onFinished(reply.raw, err => {
-        if (!err && reply.statusCode < 400) {
-          store.decrementOnKey(key)
-        }
-      })
-    }
-
     if (!hasDelay) {
       return
     }
@@ -85,6 +76,17 @@ const slowDownPlugin = async (fastify, settings) => {
     if (promiseResult === 'requestFinished') {
       reply.send('')
       return reply
+    }
+  })
+
+  fastify.addHook('onSend', async (req, reply) => {
+    const key = options.keyGenerator(req)
+    if (options.skipFailedRequests && reply.statusCode >= 400) {
+      await applySkip(req, reply, key)
+    }
+
+    if (options.skipSuccessfulRequests && reply.statusCode < 400) {
+      await applySkip(req, reply, key)
     }
   })
 }
