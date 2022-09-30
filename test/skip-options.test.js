@@ -114,8 +114,6 @@ t.test('should not apply the delay header', async t => {
       test.counter++
       const response = await internalFetch(port, '/')
 
-      console.log(response.headers.get([HEADERS.remaining]))
-
       t.equal(response.status, 200)
       t.equal(response.headers.get([HEADERS.delay]), null)
       t.equal(
