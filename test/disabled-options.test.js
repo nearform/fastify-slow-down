@@ -109,3 +109,55 @@ t.test('should not apply headers if the headers option is false', async t => {
   t.equal(response.headers.get([HEADERS.remaining]), null)
   t.equal(response.headers.get([HEADERS.delay]), null)
 })
+
+t.test(
+  'should not apply headers if the headers option is false and skipSuccessfulRequests is true',
+  async t => {
+    const fastify = Fastify()
+    await fastify.register(slowDownPlugin, {
+      headers: false,
+      skipSuccessfulRequests: true
+    })
+    t.teardown(() => fastify.close())
+
+    fastify.get('/', async () => 'Hello from fastify-slow-down!')
+    await fastify.listen()
+    const port = fastify.server.address().port
+
+    await slowDownAPI(DEFAULT_OPTIONS.delayAfter, () =>
+      internalFetch(port, '/')
+    )
+    const response = await internalFetch(port, '/')
+
+    t.equal(response.headers.get([HEADERS.limit]), null)
+    t.equal(response.headers.get([HEADERS.remaining]), null)
+    t.equal(response.headers.get([HEADERS.delay]), null)
+  }
+)
+
+t.test(
+  'should not apply headers if the headers option is false and skipFailedRequests is true',
+  async t => {
+    const fastify = Fastify()
+    await fastify.register(slowDownPlugin, {
+      headers: false,
+      skipFailedRequests: true
+    })
+    t.teardown(() => fastify.close())
+
+    fastify.get('/', async () => {
+      throw new Error('Request failed')
+    })
+    await fastify.listen()
+    const port = fastify.server.address().port
+
+    await slowDownAPI(DEFAULT_OPTIONS.delayAfter, () =>
+      internalFetch(port, '/')
+    )
+    const response = await internalFetch(port, '/')
+
+    t.equal(response.headers.get([HEADERS.limit]), null)
+    t.equal(response.headers.get([HEADERS.remaining]), null)
+    t.equal(response.headers.get([HEADERS.delay]), null)
+  }
+)
