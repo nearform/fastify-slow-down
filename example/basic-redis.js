@@ -2,8 +2,7 @@ import Redis from 'ioredis'
 import Fastify from 'fastify'
 import slowDownPlugin from '../index.js'
 
-let id = 0
-const redis = () =>
+const redis = id =>
   new Redis({
     connectionName: 'my-connection-name' + id,
     host: 'localhost',
@@ -16,9 +15,8 @@ async function run(port) {
   const fastify = Fastify({ logger: true })
   // register the plugin
   fastify.register(slowDownPlugin, {
-    redis: redis()
+    redis: redis(port)
   })
-  id++
 
   // create a route
   fastify.get('/', async () => 'Hello from fastify-slow-down!')
