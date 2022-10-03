@@ -100,3 +100,15 @@ After 10 minutes without hitting the API the results will be:
 - 31th request - 10 seconds delay
 
 \*Delay remains the same because the value of `maxDelay` option is `100 seconds`
+
+
+## Integration with [fastify-rate-limit](https://github.com/fastify/fastify-rate-limit)
+
+The plugin slows down the response without stopping it at a certain limit. This can put the server in a difficult situation because the client can make many requests without waiting for a response. To limit the number of requests, it should be used together with the `fastify-rate-limit` plugin.
+
+See in [this example](./example/rate-limit.js
+) which is the implementation using `fastify-slow-down` and `fastify-rate-limit` plugins.
+
+If the `delayAfter` value of the `fastify-slow-down` package is set to be less than the `max` value of the `fastify-rate-limit` package, then you will see the responses being delayed once the `delayAfter` value has been exceeded, by the number of `ms` as specified in the `delay` value.
+
+However, once the `max` value from the `fastify-rate-limit` package has been exceeded, then as expected you will still have rate limit errors returned but they will also be delayed according to the `delay` value from the `fastify-slow-down` package assuming that the `delayAfter` value has also been exceeded.
