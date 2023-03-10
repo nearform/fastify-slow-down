@@ -37,7 +37,7 @@
   "devDependencies": {
     "@commitlint/cli": "^17.1.2",
     "@commitlint/config-conventional": "^17.1.0",
-    "@fastify/rate-limit": "^7.4.0",
+    "@fastify/rate-limit": "^8.0.0",
     "@sinonjs/fake-timers": "^10.0.0",
     "c8": "^7.12.0",
     "eslint": "^8.23.1",
