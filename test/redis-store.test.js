@@ -26,9 +26,8 @@ test('should increment counter in a specified key and return stored value', asyn
   t.equal(counter, 1)
   t.equal(ttl, convertToMs(DEFAULT_OPTIONS.timeWindow))
   clock.tick(convertToMs(DEFAULT_OPTIONS.timeWindow))
-  const { counter: secondCounter, ttl: ttlAfter } = await store.incrementOnKey(
-    '1'
-  )
+  const { counter: secondCounter, ttl: ttlAfter } =
+    await store.incrementOnKey('1')
   t.equal(secondCounter, 2)
   t.not(ttlAfter, convertToMs(DEFAULT_OPTIONS.timeWindow))
 })
