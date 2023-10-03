@@ -24,7 +24,10 @@ t.test('should get an empty response if the request was cancelled', async t => {
   })
 
   t.equal(response.body, '')
-  t.equal(response.headers[HEADERS.delay], convertToMs(DEFAULT_OPTIONS.delay))
-  t.equal(response.headers[HEADERS.limit], DEFAULT_OPTIONS.delayAfter)
-  t.equal(response.headers[HEADERS.remaining], 0)
+  t.equal(
+    response.headers[HEADERS.delay],
+    String(convertToMs(DEFAULT_OPTIONS.delay))
+  )
+  t.equal(response.headers[HEADERS.limit], String(DEFAULT_OPTIONS.delayAfter))
+  t.equal(response.headers[HEADERS.remaining], String(0))
 })

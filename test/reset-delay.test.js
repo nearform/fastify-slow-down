@@ -39,7 +39,7 @@ test('should reset the delay', async t => {
   t.equal(await response.text(), APP_RESPONSE_TEXT)
   t.equal(
     response.headers.get([HEADERS.remaining]),
-    (DEFAULT_OPTIONS.delayAfter - 1).toString()
+    String(DEFAULT_OPTIONS.delayAfter - 1)
   )
   t.equal(response.headers.get([HEADERS.delay]), null)
 })
@@ -63,7 +63,7 @@ test('should reset the delay only for a specific request', async t => {
   t.equal(anotherResponse.body, APP_RESPONSE_TEXT)
   t.equal(
     anotherResponse.headers[HEADERS.remaining],
-    DEFAULT_OPTIONS.delayAfter - 1
+    String(DEFAULT_OPTIONS.delayAfter - 1)
   )
 
   /**
@@ -81,7 +81,7 @@ test('should reset the delay only for a specific request', async t => {
   t.equal(anotherResponse.body, APP_RESPONSE_TEXT)
   t.equal(
     anotherResponse.headers[HEADERS.remaining],
-    DEFAULT_OPTIONS.delayAfter - 2
+    String(DEFAULT_OPTIONS.delayAfter - 2)
   )
 
   /**
@@ -95,7 +95,7 @@ test('should reset the delay only for a specific request', async t => {
   t.equal(await response.text(), APP_RESPONSE_TEXT)
   t.equal(
     response.headers.get([HEADERS.remaining]),
-    (DEFAULT_OPTIONS.delayAfter - 1).toString()
+    String(DEFAULT_OPTIONS.delayAfter - 1)
   )
   t.equal(response.headers.get([HEADERS.delay]), null)
 
@@ -112,6 +112,6 @@ test('should reset the delay only for a specific request', async t => {
   t.equal(anotherResponse.body, APP_RESPONSE_TEXT)
   t.equal(
     anotherResponse.headers[HEADERS.remaining],
-    DEFAULT_OPTIONS.delayAfter - 1
+    String(DEFAULT_OPTIONS.delayAfter - 1)
   )
 })
