@@ -2,4 +2,3 @@ allow-incomplete-coverage: true
 coverage-report:
   - none
 jobs: 1
-timeout: 60
