@@ -27,7 +27,7 @@ test('should contain the slowDown request decorator', async t => {
   })
 
   t.test('with delay property', async t => {
-    const fastify = Fastify()
+    const fastify = Fastify({ forceCloseConnections: true })
     await fastify.register(slowDownPlugin)
     t.teardown(() => fastify.close())
 

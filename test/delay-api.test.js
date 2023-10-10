@@ -8,7 +8,7 @@ import { internalFetch, slowDownAPI } from './helpers.js'
 
 t.test('should delay the API', async t => {
   t.test('using default options', async t => {
-    const fastify = Fastify()
+    const fastify = Fastify({ forceCloseConnections: true })
     await fastify.register(slowDownPlugin)
     t.teardown(() => fastify.close())
 
@@ -36,7 +36,7 @@ t.test('should delay the API', async t => {
   t.test(
     'using maxDelay option, the maximum value of delay header should be maxDelay',
     async t => {
-      const fastify = Fastify()
+      const fastify = Fastify({ forceCloseConnections: true })
       const maxDelay = '2 seconds'
       await fastify.register(slowDownPlugin, { maxDelay })
       t.teardown(() => fastify.close())

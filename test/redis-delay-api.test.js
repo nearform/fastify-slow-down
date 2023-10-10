@@ -12,7 +12,7 @@ const REDIS_HOST = '127.0.0.1'
 test('should delay the API using redis with basic options', async t => {
   const closeSpy = sinon.spy(RedisStore.prototype, 'close')
   const redis = new Redis({ host: REDIS_HOST })
-  const fastify = Fastify()
+  const fastify = Fastify({ forceCloseConnections: true })
   await fastify.register(slowDownPlugin, {
     redis
   })
