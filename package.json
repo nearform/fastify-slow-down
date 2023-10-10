@@ -16,7 +16,7 @@
     "run:example": "node example/basic.js",
     "redis:example": "node example/basic-redis.js",
     "test": "npm run test:unit && npm run test:types",
-    "test:unit": "c8 --100 tap --jobs=2 --disable-coverage --allow-empty-coverage test/*.test.js",
+    "test:unit": "tap test/*.test.js && c8 report --check-coverage --temp-directory .tap/coverage",
     "test:types": "tsd",
     "prepare": "husky install"
   },
