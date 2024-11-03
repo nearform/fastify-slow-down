@@ -92,6 +92,6 @@ const slowDownPlugin = async (fastify, settings) => {
 }
 
 export default fp(slowDownPlugin, {
-  fastify: '4.x',
+  fastify: '5.x',
   name: 'fastify-slow-down'
 })
