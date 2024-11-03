@@ -59,7 +59,7 @@
     "*.{js,jsx}": "eslint --cache --fix"
   },
   "peerDependencies": {
-    "fastify": "4.x"
+    "fastify": "5.x"
   },
   "dependencies": {
     "fastify-plugin": "^5.0.1",
