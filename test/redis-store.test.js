@@ -1,6 +1,6 @@
 import FakeTimers from '@sinonjs/fake-timers'
 import Redis from 'ioredis'
-import { test } from 'node:test'
+import { after, test } from 'node:test'
 import sinon from 'sinon'
 import { DEFAULT_OPTIONS } from '../lib/constants.js'
 import { convertToMs } from '../lib/helpers.js'
@@ -11,7 +11,7 @@ const REDIS_HOST = '127.0.0.1'
 test('should increment counter in a specified key and return stored value', async t => {
   const redis = new Redis({ host: REDIS_HOST })
   const clock = FakeTimers.install()
-  t.teardown(async () => {
+  after(async () => {
     clock.uninstall()
     await redis.flushall()
     await redis.quit()
@@ -29,12 +29,12 @@ test('should increment counter in a specified key and return stored value', asyn
   const { counter: secondCounter, ttl: ttlAfter } =
     await store.incrementOnKey('1')
   t.assert.equal(secondCounter, 2)
-  t.not(ttlAfter, convertToMs(DEFAULT_OPTIONS.timeWindow))
+  t.assert.notEqual(ttlAfter, convertToMs(DEFAULT_OPTIONS.timeWindow))
 })
 
 test('should decrement counter for a given key if counter is greater than 0 and otherwise should have no effects', async t => {
   const redis = new Redis({ host: REDIS_HOST })
-  t.teardown(async () => {
+  after(async () => {
     await redis.flushall()
     await redis.quit()
   })
@@ -67,7 +67,7 @@ test('should return counter for a given key', async t => {
     'fastify-slow-down',
     convertToMs(DEFAULT_OPTIONS.timeWindow)
   )
-  t.teardown(async () => {
+  after(async () => {
     await redis.flushall()
     await redis.quit()
   })
@@ -83,7 +83,7 @@ test('should return a default counter for a given key if key is not set', async 
     'fastify-slow-down',
     convertToMs(DEFAULT_OPTIONS.timeWindow)
   )
-  t.teardown(async () => {
+  after(async () => {
     await redis.flushall()
     await redis.quit()
   })
@@ -91,10 +91,10 @@ test('should return a default counter for a given key if key is not set', async 
   t.assert.equal(counter, 0)
 })
 
-test('should have called the redis quit method when store has been closed', async t => {
+test('should have called the redis quit method when store has been closed', async () => {
   const redis = new Redis({ host: REDIS_HOST })
 
-  t.teardown(async () => {
+  after(async () => {
     await redis.quit()
   })
 
@@ -119,5 +119,5 @@ test('should throws an error when redis is not connected', async t => {
   )
   await redis.flushall()
   await redis.quit()
-  t.rejects(() => store.incrementOnKey('1'))
+  await t.assert.rejects(() => store.incrementOnKey('1'))
 })

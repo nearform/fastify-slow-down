@@ -1,6 +1,6 @@
 import FakeTimers from '@sinonjs/fake-timers'
 import Fastify from 'fastify'
-import { test } from 'node:test'
+import { after, test } from 'node:test'
 
 import slowDownPlugin from '../index.js'
 import { DEFAULT_OPTIONS, HEADERS } from '../lib/constants.js'
@@ -17,7 +17,7 @@ function setup() {
 }
 
 function teardownSetup(t, clock, fastify) {
-  t.teardown(() => {
+  after(() => {
     fastify.close()
     clock.uninstall()
   })

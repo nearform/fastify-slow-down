@@ -6,7 +6,7 @@ import { DEFAULT_OPTIONS, HEADERS } from '../lib/constants.js'
 import { internalFetch, slowDownAPI } from './helpers.js'
 
 describe('should not apply the delay header', async () => {
-  test('if the option skip function returns true', async () => {
+  test('if the option skip function returns true', async t => {
     const fastify = Fastify()
     await fastify.register(slowDownPlugin, {
       skip: () => true
@@ -27,29 +27,26 @@ describe('should not apply the delay header', async () => {
     t.assert.equal(response.headers.get([HEADERS.delay]), null)
   })
 
-  test(
-    'if skipSuccessfulRequests is true and the request is a success',
-    async t => {
-      const fastify = Fastify()
-      await fastify.register(slowDownPlugin, {
-        skipSuccessfulRequests: true
-      })
-      after(() => fastify.close())
+  test('if skipSuccessfulRequests is true and the request is a success', async t => {
+    const fastify = Fastify()
+    await fastify.register(slowDownPlugin, {
+      skipSuccessfulRequests: true
+    })
+    after(() => fastify.close())
 
-      fastify.get('/', async () => 'Hello from fastify-slow-down!')
-      await fastify.listen()
-      const port = fastify.server.address().port
+    fastify.get('/', async () => 'Hello from fastify-slow-down!')
+    await fastify.listen()
+    const port = fastify.server.address().port
 
-      await slowDownAPI(DEFAULT_OPTIONS.delayAfter, () =>
-        internalFetch(port, '/')
-      )
-      const response = await internalFetch(port, '/')
+    await slowDownAPI(DEFAULT_OPTIONS.delayAfter, () =>
+      internalFetch(port, '/')
+    )
+    const response = await internalFetch(port, '/')
 
-      t.assert.equal(await response.text(), 'Hello from fastify-slow-down!')
-      t.assert.equal(response.status, 200)
-      t.assert.equal(response.headers.get([HEADERS.delay]), null)
-    }
-  )
+    t.assert.equal(await response.text(), 'Hello from fastify-slow-down!')
+    t.assert.equal(response.status, 200)
+    t.assert.equal(response.headers.get([HEADERS.delay]), null)
+  })
 
   test('if skipFailedRequests is true and the request fails', async t => {
     const fastify = Fastify()
@@ -86,40 +83,37 @@ describe('should not apply the delay header', async () => {
     )
   })
 
-  test(
-    'if skipSuccessfulRequests is true and the request succeeds and one fail it updates remaining header value properly',
-    async t => {
-      const fastify = Fastify()
-      await fastify.register(slowDownPlugin, {
-        skipSuccessfulRequests: true
-      })
-      after(() => fastify.close())
-      let test = {
-        counter: 0
-      }
-
-      fastify.get('/', async () => {
-        if (test.counter === DEFAULT_OPTIONS.delayAfter) {
-          throw new Error('Request failed')
-        }
-        return 'Hello from fastify-slow-down!'
-      })
-      await fastify.listen()
-      const port = fastify.server.address().port
-
-      await slowDownAPI(DEFAULT_OPTIONS.delayAfter, async () => {
-        test.counter++
-        await internalFetch(port, '/')
-      })
-      test.counter++
-      const response = await internalFetch(port, '/')
-
-      t.assert.equal(response.status, 200)
-      t.assert.equal(response.headers.get([HEADERS.delay]), null)
-      t.assert.equal(
-        parseInt(response.headers.get([HEADERS.remaining])),
-        DEFAULT_OPTIONS.delayAfter - 1
-      )
+  test('if skipSuccessfulRequests is true and the request succeeds and one fail it updates remaining header value properly', async t => {
+    const fastify = Fastify()
+    await fastify.register(slowDownPlugin, {
+      skipSuccessfulRequests: true
+    })
+    after(() => fastify.close())
+    let test = {
+      counter: 0
     }
-  )
+
+    fastify.get('/', async () => {
+      if (test.counter === DEFAULT_OPTIONS.delayAfter) {
+        throw new Error('Request failed')
+      }
+      return 'Hello from fastify-slow-down!'
+    })
+    await fastify.listen()
+    const port = fastify.server.address().port
+
+    await slowDownAPI(DEFAULT_OPTIONS.delayAfter, async () => {
+      test.counter++
+      await internalFetch(port, '/')
+    })
+    test.counter++
+    const response = await internalFetch(port, '/')
+
+    t.assert.equal(response.status, 200)
+    t.assert.equal(response.headers.get([HEADERS.delay]), null)
+    t.assert.equal(
+      parseInt(response.headers.get([HEADERS.remaining])),
+      DEFAULT_OPTIONS.delayAfter - 1
+    )
+  })
 })
