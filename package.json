@@ -16,7 +16,7 @@
     "run:example": "node example/basic.js",
     "redis:example": "node example/basic-redis.js",
     "test": "npm run test:unit && npm run test:types",
-    "test:unit": "c8 --100 tap --jobs=2 --no-coverage test/*.test.js",
+    "test:unit": "node --test --experimental-test-coverage test/*.test.js",
     "test:types": "tsd",
     "prepare": "husky"
   },
@@ -49,7 +49,6 @@
     "lint-staged": "^15.0.2",
     "prettier": "^3.0.3",
     "sinon": "^19.0.2",
-    "tap": "^16.0.0",
     "tsd": "^0.31.0"
   },
   "tsd": {
