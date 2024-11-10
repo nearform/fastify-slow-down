@@ -33,7 +33,10 @@ test('should delay the API using redis with basic options', async t => {
   response = await internalFetch(port, '/')
   t.assert.equal(await response.text(), 'Hello from fastify-slow-down!')
   t.assert.equal(response.status, 200)
-  t.assert.equal(response.headers.get([HEADERS.delay]), (2 * delayMs).toString())
+  t.assert.equal(
+    response.headers.get([HEADERS.delay]),
+    (2 * delayMs).toString()
+  )
   await redis.flushall()
   await fastify.close()
   sinon.assert.calledOnce(closeSpy)
