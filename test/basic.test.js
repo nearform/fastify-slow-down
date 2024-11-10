@@ -16,15 +16,15 @@ test('should work as a normal API', async t => {
 
   const response = await internalFetch(port, '/')
 
-  t.assert.assert.equal(await response.text(), 'Hello from fastify-slow-down!')
-  t.assert.assert.equal(response.status, 200)
-  t.assert.assert.equal(
+  t.assert.equal(await response.text(), 'Hello from fastify-slow-down!')
+  t.assert.equal(response.status, 200)
+  t.assert.equal(
     response.headers.get([HEADERS.remaining]),
     (DEFAULT_OPTIONS.delayAfter - 1).toString()
   )
-  t.assert.assert.equal(
+  t.assert.equal(
     response.headers.get([HEADERS.limit]),
     DEFAULT_OPTIONS.delayAfter.toString()
   )
-  t.assert.assert.equal(response.headers.get([HEADERS.delay]), null)
+  t.assert.equal(response.headers.get([HEADERS.delay]), null)
 })

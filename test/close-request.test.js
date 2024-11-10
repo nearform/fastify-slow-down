@@ -23,11 +23,14 @@ test('should get an empty response if the request was cancelled', async t => {
     }
   })
 
-  t.assert.assert.equal(response.body, '')
-  t.assert.assert.equal(
+  t.assert.equal(response.body, '')
+  t.assert.equal(
     response.headers[HEADERS.delay],
     String(convertToMs(DEFAULT_OPTIONS.delay))
   )
-  t.assert.assert.equal(response.headers[HEADERS.limit], String(DEFAULT_OPTIONS.delayAfter))
-  t.assert.assert.equal(response.headers[HEADERS.remaining], String(0))
+  t.assert.equal(
+    response.headers[HEADERS.limit],
+    String(DEFAULT_OPTIONS.delayAfter)
+  )
+  t.assert.equal(response.headers[HEADERS.remaining], String(0))
 })
