@@ -15,4 +15,4 @@ export const slowDownAPI = async (delayAfter, endpointReached) => {
  * @param {*}  relative location to fetch the data
  */
 export const internalFetch = (port, path, options) =>
-  fetch('http://localhost:' + port + path, options)
+  fetch(`http://localhost:${port}${path}`, options)

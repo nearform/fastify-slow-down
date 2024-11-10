@@ -89,7 +89,7 @@ describe('should not apply the delay header', async () => {
       skipSuccessfulRequests: true
     })
     after(() => fastify.close())
-    let test = {
+    const test = {
       counter: 0
     }
 

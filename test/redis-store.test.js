@@ -103,7 +103,7 @@ test('should have called the redis quit method when store has been closed', asyn
     'fastify-slow-down',
     convertToMs(DEFAULT_OPTIONS.timeWindow)
   )
-  let quitSpy = sinon.spy(redis, 'quit')
+  const quitSpy = sinon.spy(redis, 'quit')
   await store.close()
   quitSpy.restore()
   sinon.assert.calledOnce(quitSpy)
