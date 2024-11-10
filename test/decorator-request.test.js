@@ -39,8 +39,8 @@ describe('should contain the slowDown request decorator', async () => {
     const responseBody = await (await internalFetch(port, '/')).json()
 
     t.assert.equal(responseBody.limit, DEFAULT_OPTIONS.delayAfter)
-    t.assert.equal(responseBody.current, 1)
-    t.assert.equal(responseBody.remaining, DEFAULT_OPTIONS.delayAfter - 1)
+    t.assert.equal(responseBody.current, DEFAULT_OPTIONS.delayAfter + 1)
+    t.assert.equal(responseBody.remaining, 0)
     t.assert.equal(responseBody.delay, convertToMs(DEFAULT_OPTIONS.delay))
   })
 })
