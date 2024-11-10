@@ -1,16 +1,16 @@
-import { test } from 'tap'
 import Fastify from 'fastify'
+import { after, describe, test } from 'node:test'
 
 import slowDownPlugin from '../index.js'
 import { DEFAULT_OPTIONS } from '../lib/constants.js'
-import { internalFetch, slowDownAPI } from './helpers.js'
 import { convertToMs } from '../lib/helpers.js'
+import { internalFetch, slowDownAPI } from './helpers.js'
 
-test('should contain the slowDown request decorator', async t => {
-  t.test('without delay property', async t => {
+describe('should contain the slowDown request decorator', async () => {
+  test('without delay property', async t => {
     const fastify = Fastify()
     await fastify.register(slowDownPlugin)
-    t.teardown(() => fastify.close())
+    after(() => fastify.close())
 
     fastify.get('/', async req => req.slowDown)
     await fastify.listen()
@@ -18,18 +18,16 @@ test('should contain the slowDown request decorator', async t => {
 
     const responseBody = await (await internalFetch(port, '/')).json()
 
-    t.has(responseBody, {
-      limit: DEFAULT_OPTIONS.delayAfter,
-      current: 1,
-      remaining: DEFAULT_OPTIONS.delayAfter - 1,
-      delay: undefined
-    })
+    t.assert.assert.equal(responseBody.limit, DEFAULT_OPTIONS.delayAfter)
+    t.assert.assert.equal(responseBody.current, 1)
+    t.assert.assert.equal(responseBody.remaining, DEFAULT_OPTIONS.delayAfter - 1)
+    t.assert.assert.equal(responseBody.delay, undefined)
   })
 
-  t.test('with delay property', async t => {
+  test('with delay property', async t => {
     const fastify = Fastify()
     await fastify.register(slowDownPlugin)
-    t.teardown(() => fastify.close())
+    after(() => fastify.close())
 
     fastify.get('/', async req => req.slowDown)
     await fastify.listen()
@@ -40,11 +38,9 @@ test('should contain the slowDown request decorator', async t => {
     )
     const responseBody = await (await internalFetch(port, '/')).json()
 
-    t.has(responseBody, {
-      limit: DEFAULT_OPTIONS.delayAfter,
-      current: DEFAULT_OPTIONS.delayAfter + 1,
-      remaining: 0,
-      delay: convertToMs(DEFAULT_OPTIONS.delay)
-    })
+    t.assert.assert.equal(responseBody.limit, DEFAULT_OPTIONS.delayAfter)
+    t.assert.assert.equal(responseBody.current, 1)
+    t.assert.assert.equal(responseBody.remaining, DEFAULT_OPTIONS.delayAfter - 1)
+    t.assert.assert.equal(responseBody.delay, convertToMs(DEFAULT_OPTIONS.delay))
   })
 })

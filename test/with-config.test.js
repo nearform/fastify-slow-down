@@ -1,5 +1,5 @@
-import { test } from 'tap'
 import Fastify from 'fastify'
+import { after, test } from 'node:test'
 
 import slowDownPlugin from '../index.js'
 import { HEADERS } from '../lib/constants.js'
@@ -13,7 +13,7 @@ test('should work with provided options', async t => {
     delayAfter: 1,
     timeWindow: '1 minute'
   })
-  t.teardown(() => fastify.close())
+  after(() => fastify.close())
 
   fastify.get('/', async () => 'Hello from fastify-slow-down!')
   await fastify.listen()
@@ -22,7 +22,7 @@ test('should work with provided options', async t => {
   await internalFetch(port, '/')
   const response = await internalFetch(port, '/')
 
-  t.equal(await response.text(), 'Hello from fastify-slow-down!')
-  t.equal(response.status, 200)
-  t.equal(response.headers.get([HEADERS.delay]), '1000')
+  t.assert.equal(await response.text(), 'Hello from fastify-slow-down!')
+  t.assert.equal(response.status, 200)
+  t.assert.equal(response.headers.get([HEADERS.delay]), '1000')
 })

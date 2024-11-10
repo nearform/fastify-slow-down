@@ -1,13 +1,13 @@
 import Fastify from 'fastify'
+import { after, describe } from 'node:test'
 import sinon from 'sinon'
-import t from 'tap'
 
 import slowDownPlugin from '../index.js'
 import { internalFetch } from './helpers.js'
 
-t.test(
+describe(
   'should call the onLimitReached option the first time the limit is reached within the time window',
-  async t => {
+  async () => {
     const fastify = Fastify()
 
     const onLimitReached = sinon.spy()
@@ -16,7 +16,7 @@ t.test(
       delayAfter: 1,
       onLimitReached
     })
-    t.teardown(() => fastify.close())
+    after(() => fastify.close())
 
     fastify.get('/', async () => 'Hello from fastify-slow-down!')
     await fastify.listen()

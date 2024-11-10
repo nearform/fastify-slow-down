@@ -1,10 +1,10 @@
-import { test } from 'tap'
-import Redis from 'ioredis'
-import sinon from 'sinon'
 import FakeTimers from '@sinonjs/fake-timers'
+import Redis from 'ioredis'
+import { test } from 'node:test'
+import sinon from 'sinon'
+import { DEFAULT_OPTIONS } from '../lib/constants.js'
 import { convertToMs } from '../lib/helpers.js'
 import { RedisStore } from '../lib/redisStore.js'
-import { DEFAULT_OPTIONS } from '../lib/constants.js'
 
 const REDIS_HOST = '127.0.0.1'
 
@@ -23,12 +23,12 @@ test('should increment counter in a specified key and return stored value', asyn
     convertToMs(DEFAULT_OPTIONS.timeWindow)
   )
   const { counter, ttl } = await store.incrementOnKey('1')
-  t.equal(counter, 1)
-  t.equal(ttl, convertToMs(DEFAULT_OPTIONS.timeWindow))
+  t.assert.equal(counter, 1)
+  t.assert.equal(ttl, convertToMs(DEFAULT_OPTIONS.timeWindow))
   clock.tick(convertToMs(DEFAULT_OPTIONS.timeWindow))
   const { counter: secondCounter, ttl: ttlAfter } =
     await store.incrementOnKey('1')
-  t.equal(secondCounter, 2)
+  t.assert.equal(secondCounter, 2)
   t.not(ttlAfter, convertToMs(DEFAULT_OPTIONS.timeWindow))
 })
 
@@ -49,7 +49,7 @@ test('should decrement counter for a given key if counter is greater than 0 and 
   await store.incrementOnKey(key)
   const { counter: firstResult } = await store.getValue(key)
 
-  t.equal(firstResult, 1)
+  t.assert.equal(firstResult, 1)
 
   await store.decrementOnKey(key)
   await store.decrementOnKey(key)
@@ -57,7 +57,7 @@ test('should decrement counter for a given key if counter is greater than 0 and 
   await store.decrementOnKey(key)
   const { counter: secondResult } = await store.getValue(key)
 
-  t.equal(secondResult, 0)
+  t.assert.equal(secondResult, 0)
 })
 
 test('should return counter for a given key', async t => {
@@ -73,7 +73,7 @@ test('should return counter for a given key', async t => {
   })
   await store.incrementOnKey('1')
   const { counter } = await store.getValue('1')
-  t.equal(counter, 1)
+  t.assert.equal(counter, 1)
 })
 
 test('should return a default counter for a given key if key is not set', async t => {
@@ -88,7 +88,7 @@ test('should return a default counter for a given key if key is not set', async 
     await redis.quit()
   })
   const { counter } = await store.getValue('1')
-  t.equal(counter, 0)
+  t.assert.equal(counter, 0)
 })
 
 test('should have called the redis quit method when store has been closed', async t => {

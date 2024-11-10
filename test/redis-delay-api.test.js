@@ -1,12 +1,12 @@
-import { test } from 'tap'
 import Fastify from 'fastify'
+import Redis from 'ioredis'
+import { test } from 'node:test'
 import sinon from 'sinon'
 import slowDownPlugin from '../index.js'
-import { RedisStore } from '../lib/redisStore.js'
+import { DEFAULT_OPTIONS, HEADERS } from '../lib/constants.js'
 import { convertToMs } from '../lib/helpers.js'
-import { HEADERS, DEFAULT_OPTIONS } from '../lib/constants.js'
+import { RedisStore } from '../lib/redisStore.js'
 import { internalFetch, slowDownAPI } from './helpers.js'
-import Redis from 'ioredis'
 
 const REDIS_HOST = '127.0.0.1'
 test('should delay the API using redis with basic options', async t => {
@@ -26,14 +26,14 @@ test('should delay the API using redis with basic options', async t => {
   const delayMs = convertToMs(DEFAULT_OPTIONS.delay)
 
   let response = await internalFetch(port, '/')
-  t.equal(await response.text(), 'Hello from fastify-slow-down!')
-  t.equal(response.status, 200)
-  t.equal(response.headers.get([HEADERS.delay]), delayMs.toString())
+  t.assert.equal(await response.text(), 'Hello from fastify-slow-down!')
+  t.assert.equal(response.status, 200)
+  t.assert.equal(response.headers.get([HEADERS.delay]), delayMs.toString())
 
   response = await internalFetch(port, '/')
-  t.equal(await response.text(), 'Hello from fastify-slow-down!')
-  t.equal(response.status, 200)
-  t.equal(response.headers.get([HEADERS.delay]), (2 * delayMs).toString())
+  t.assert.equal(await response.text(), 'Hello from fastify-slow-down!')
+  t.assert.equal(response.status, 200)
+  t.assert.equal(response.headers.get([HEADERS.delay]), (2 * delayMs).toString())
   await redis.flushall()
   await fastify.close()
   sinon.assert.calledOnce(closeSpy)
