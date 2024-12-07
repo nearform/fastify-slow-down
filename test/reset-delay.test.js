@@ -1,6 +1,5 @@
-import FakeTimers from '@sinonjs/fake-timers'
 import Fastify from 'fastify'
-import { after, test } from 'node:test'
+import { mock, test } from 'node:test'
 
 import slowDownPlugin from '../index.js'
 import { DEFAULT_OPTIONS, HEADERS } from '../lib/constants.js'
@@ -16,23 +15,23 @@ function setup() {
   return fastify
 }
 
-function teardownSetup(t, clock, fastify) {
-  after(() => {
+function teardownSetup(t, fastify) {
+  t.after(() => {
     fastify.close()
-    clock.uninstall()
+    mock.timers.reset()
   })
 }
 
 test('should reset the delay', async t => {
   const fastify = setup()
-  const clock = FakeTimers.install()
-  teardownSetup(t, clock, fastify)
+  mock.timers.enable()
+  teardownSetup(t, fastify)
   await fastify.listen()
   const port = fastify.server.address().port
 
   await slowDownAPI(DEFAULT_OPTIONS.delayAfter, () => internalFetch(port, '/'))
 
-  clock.tick(convertToMs(DEFAULT_OPTIONS.timeWindow))
+  mock.timers.tick(convertToMs(DEFAULT_OPTIONS.timeWindow))
 
   const response = await internalFetch(port, '/')
 
@@ -46,8 +45,8 @@ test('should reset the delay', async t => {
 
 test('should reset the delay only for a specific request', async t => {
   const fastify = setup()
-  const clock = FakeTimers.install()
-  teardownSetup(t, clock, fastify)
+  mock.timers.enable()
+  teardownSetup(t, fastify)
 
   await fastify.listen()
   const port = fastify.server.address().port
@@ -71,7 +70,7 @@ test('should reset the delay only for a specific request', async t => {
     and then make a new request from the same IP address as before
     We want to be sure that this request doesn't affect other ones
   */
-  clock.tick(convertToMs(DEFAULT_OPTIONS.timeWindow) / 2)
+  mock.timers.tick(convertToMs(DEFAULT_OPTIONS.timeWindow) / 2)
 
   anotherResponse = await fastify.inject({
     path: '/',
@@ -89,7 +88,7 @@ test('should reset the delay only for a specific request', async t => {
    * and then make an additional request that shouldn't be delayed
    * and should contain proper headers
    */
-  clock.tick(convertToMs(DEFAULT_OPTIONS.timeWindow) / 2)
+  mock.timers.tick(convertToMs(DEFAULT_OPTIONS.timeWindow) / 2)
 
   const response = await internalFetch(port, '/')
   t.assert.equal(await response.text(), APP_RESPONSE_TEXT)
@@ -103,7 +102,7 @@ test('should reset the delay only for a specific request', async t => {
    * We want to wait for another half of the time window and
    * then a request from the different IP address will have proper headers
    */
-  clock.tick(convertToMs(DEFAULT_OPTIONS.timeWindow) / 2)
+  mock.timers.tick(convertToMs(DEFAULT_OPTIONS.timeWindow) / 2)
 
   anotherResponse = await fastify.inject({
     path: '/',
