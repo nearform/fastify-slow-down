@@ -45,7 +45,7 @@
     "fastify": "^5.1.0",
     "husky": "^9.1.7",
     "ioredis": "^5.4.1",
-    "lint-staged": "^15.2.10",
+    "lint-staged": "^16.0.0",
     "prettier": "^3.4.2",
     "sinon": "^20.0.0",
     "tsd": "^0.32.0"
