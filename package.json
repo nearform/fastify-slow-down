@@ -36,7 +36,7 @@
   "homepage": "https://github.com/nearform/fastify-slow-down#readme",
   "devDependencies": {
     "@commitlint/cli": "^19.6.0",
-    "@commitlint/config-conventional": "^19.6.0",
+    "@commitlint/config-conventional": "^20.0.0",
     "@fastify/rate-limit": "^10.2.1",
     "c8": "^10.1.2",
     "eslint": "^9.16.0",
