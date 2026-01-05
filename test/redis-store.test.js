@@ -7,8 +7,44 @@ import { RedisStore } from '../lib/redisStore.js'
 
 const REDIS_HOST = '127.0.0.1'
 
+async function checkRedisAvailable() {
+  const redis = new Redis({
+    host: REDIS_HOST,
+    lazyConnect: true,
+    connectTimeout: 2000,
+    retryStrategy: () => null
+  })
+  redis.on('error', () => {})
+
+  try {
+    await Promise.race([
+      redis.connect(),
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('timeout')), 2000)
+      )
+    ])
+    await redis.quit()
+    return true
+  } catch {
+    try {
+      await redis.quit()
+    } catch {
+      // Ignore quit errors
+    }
+    return false
+  }
+}
+
+const redisAvailable = await checkRedisAvailable()
+
 test('should increment counter in a specified key and return stored value', async t => {
-  const redis = new Redis({ host: REDIS_HOST })
+  if (!redisAvailable) {
+    t.skip('Redis is not available')
+    return
+  }
+  const redis = new Redis({ host: REDIS_HOST, lazyConnect: true })
+  redis.on('error', () => {})
+  await redis.connect()
   mock.timers.enable()
   t.after(async () => {
     mock.timers.reset()
@@ -32,7 +68,13 @@ test('should increment counter in a specified key and return stored value', asyn
 })
 
 test('should decrement counter for a given key if counter is greater than 0 and otherwise should have no effects', async t => {
-  const redis = new Redis({ host: REDIS_HOST })
+  if (!redisAvailable) {
+    t.skip('Redis is not available')
+    return
+  }
+  const redis = new Redis({ host: REDIS_HOST, lazyConnect: true })
+  redis.on('error', () => {})
+  await redis.connect()
   after(async () => {
     await redis.flushall()
     await redis.quit()
@@ -60,7 +102,13 @@ test('should decrement counter for a given key if counter is greater than 0 and 
 })
 
 test('should return counter for a given key', async t => {
-  const redis = new Redis({ host: REDIS_HOST })
+  if (!redisAvailable) {
+    t.skip('Redis is not available')
+    return
+  }
+  const redis = new Redis({ host: REDIS_HOST, lazyConnect: true })
+  redis.on('error', () => {})
+  await redis.connect()
   const store = new RedisStore(
     redis,
     'fastify-slow-down',
@@ -76,7 +124,13 @@ test('should return counter for a given key', async t => {
 })
 
 test('should return a default counter for a given key if key is not set', async t => {
-  const redis = new Redis({ host: REDIS_HOST })
+  if (!redisAvailable) {
+    t.skip('Redis is not available')
+    return
+  }
+  const redis = new Redis({ host: REDIS_HOST, lazyConnect: true })
+  redis.on('error', () => {})
+  await redis.connect()
   const store = new RedisStore(
     redis,
     'fastify-slow-down',
@@ -90,8 +144,14 @@ test('should return a default counter for a given key if key is not set', async 
   t.assert.equal(counter, 0)
 })
 
-test('should have called the redis quit method when store has been closed', async () => {
-  const redis = new Redis({ host: REDIS_HOST })
+test('should have called the redis quit method when store has been closed', async t => {
+  if (!redisAvailable) {
+    t.skip('Redis is not available')
+    return
+  }
+  const redis = new Redis({ host: REDIS_HOST, lazyConnect: true })
+  redis.on('error', () => {})
+  await redis.connect()
 
   after(async () => {
     await redis.quit()
@@ -109,7 +169,13 @@ test('should have called the redis quit method when store has been closed', asyn
 })
 
 test('should throws an error when redis is not connected', async t => {
-  const redis = new Redis({ host: REDIS_HOST })
+  if (!redisAvailable) {
+    t.skip('Redis is not available')
+    return
+  }
+  const redis = new Redis({ host: REDIS_HOST, lazyConnect: true })
+  redis.on('error', () => {})
+  await redis.connect()
 
   const store = new RedisStore(
     redis,

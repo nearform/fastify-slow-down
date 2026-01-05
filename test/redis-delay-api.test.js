@@ -9,9 +9,46 @@ import { RedisStore } from '../lib/redisStore.js'
 import { internalFetch, slowDownAPI } from './helpers.js'
 
 const REDIS_HOST = '127.0.0.1'
+
+async function checkRedisAvailable() {
+  const redis = new Redis({
+    host: REDIS_HOST,
+    lazyConnect: true,
+    connectTimeout: 2000,
+    retryStrategy: () => null
+  })
+  redis.on('error', () => {})
+
+  try {
+    await Promise.race([
+      redis.connect(),
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('timeout')), 2000)
+      )
+    ])
+    await redis.quit()
+    return true
+  } catch {
+    try {
+      await redis.quit()
+    } catch {
+      // Ignore quit errors
+    }
+    return false
+  }
+}
+
+const redisAvailable = await checkRedisAvailable()
+
 test('should delay the API using redis with basic options', async t => {
+  if (!redisAvailable) {
+    t.skip('Redis is not available')
+    return
+  }
   const closeSpy = sinon.spy(RedisStore.prototype, 'close')
-  const redis = new Redis({ host: REDIS_HOST })
+  const redis = new Redis({ host: REDIS_HOST, lazyConnect: true })
+  redis.on('error', () => {})
+  await redis.connect()
   const fastify = Fastify()
   await fastify.register(slowDownPlugin, {
     redis
