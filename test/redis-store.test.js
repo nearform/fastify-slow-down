@@ -1,5 +1,5 @@
 import Redis from 'ioredis'
-import { after, mock, test } from 'node:test'
+import { after, test } from 'node:test'
 import sinon from 'sinon'
 import { DEFAULT_OPTIONS } from '../lib/constants.js'
 import { convertToMs } from '../lib/helpers.js'
@@ -45,9 +45,7 @@ test('should increment counter in a specified key and return stored value', asyn
   const redis = new Redis({ host: REDIS_HOST, lazyConnect: true })
   redis.on('error', () => {})
   await redis.connect()
-  mock.timers.enable()
   t.after(async () => {
-    mock.timers.reset()
     await redis.flushall()
     await redis.quit()
   })
@@ -60,7 +58,6 @@ test('should increment counter in a specified key and return stored value', asyn
   const { counter, ttl } = await store.incrementOnKey('1')
   t.assert.equal(counter, 1)
   t.assert.equal(ttl, convertToMs(DEFAULT_OPTIONS.timeWindow))
-  mock.timers.tick(convertToMs(DEFAULT_OPTIONS.timeWindow))
   const { counter: secondCounter, ttl: ttlAfter } =
     await store.incrementOnKey('1')
   t.assert.equal(secondCounter, 2)
