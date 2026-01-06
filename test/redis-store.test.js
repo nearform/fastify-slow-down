@@ -153,10 +153,6 @@ test('should have called the redis quit method when store has been closed', asyn
   redis.on('error', () => {})
   await redis.connect()
 
-  after(async () => {
-    await redis.quit()
-  })
-
   const store = new RedisStore(
     redis,
     'fastify-slow-down',
