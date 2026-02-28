@@ -39,7 +39,7 @@
     "@commitlint/config-conventional": "^20.0.0",
     "@fastify/rate-limit": "^10.2.1",
     "c8": "^10.1.2",
-    "eslint": "^9.16.0",
+    "eslint": "^10.0.2",
     "eslint-config-prettier": "^10.0.1",
     "eslint-plugin-prettier": "5.5.5",
     "fastify": "^5.1.0",
