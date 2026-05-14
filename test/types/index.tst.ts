@@ -1,5 +1,5 @@
 import Fastify from 'fastify'
-import { expectAssignable } from 'tsd'
+import { expect } from 'tstyche'
 import fastifySlowDown from '../..'
 
 const fastify = Fastify()
@@ -25,10 +25,10 @@ fastify.register(fastifySlowDown, {
 })
 
 fastify.get('/', req => {
-  expectAssignable<{
+  expect(req.slowDown).type.toBe<{
     limit: number
     delay?: number
     current: number
     remaining: number
-  }>(req.slowDown)
+  }>()
 })
