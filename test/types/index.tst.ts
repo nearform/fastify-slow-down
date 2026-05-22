@@ -1,6 +1,7 @@
 import Fastify from 'fastify'
 import { expect } from 'tstyche'
-import fastifySlowDown from '../..'
+import type { FastifyRequest, FastifyReply } from 'fastify'
+import fastifySlowDown from '../../index.js'
 
 const fastify = Fastify()
 
@@ -13,13 +14,13 @@ fastify.register(fastifySlowDown, {
   headers: true,
   maxDelay: '1 minute',
   timeWindow: '5 minutes',
-  keyGenerator(req) {
+  keyGenerator(req: FastifyRequest) {
     req.ip
   },
-  onLimitReached(req, reply) {},
+  onLimitReached(req: FastifyRequest, reply: FastifyReply) {},
   skipFailedRequests: false,
   skipSuccessfulRequests: true,
-  skip(req, reply) {
+  skip(req: FastifyRequest, reply: FastifyReply) {
     return false
   }
 })

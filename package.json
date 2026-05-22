@@ -48,7 +48,7 @@
     "lint-staged": "^17.0.4",
     "prettier": "^3.4.2",
     "sinon": "^22.0.0",
-    "tstyche": "^2.1.1"
+    "tstyche": "^7.0.0"
   },
   "lint-staged": {
     "*.{js,jsx}": "eslint --cache --fix"
