@@ -4,10 +4,10 @@
   "description": "A slow down plugin for fastify",
   "main": "index.js",
   "type": "module",
-  "types": "index.d.ts",
+  "types": "types/index.d.ts",
   "files": [
     "index.js",
-    "index.d.ts",
+    "types/index.d.ts",
     "lib"
   ],
   "scripts": {
@@ -16,7 +16,7 @@
     "run:example": "node example/basic.js",
     "redis:example": "node example/basic-redis.js",
     "test": "npm run test:unit && npm run test:types",
-    "test:unit": "node --test --experimental-test-coverage test/*.test.js",
+    "test:unit": "node --test --experimental-test-coverage",
     "test:types": "tstyche",
     "prepare": "husky"
   },

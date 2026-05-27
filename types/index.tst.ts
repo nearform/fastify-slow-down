@@ -1,7 +1,7 @@
 import Fastify from 'fastify'
 import { expect } from 'tstyche'
 import type { FastifyRequest, FastifyReply } from 'fastify'
-import fastifySlowDown from '../../index.js'
+import fastifySlowDown from './index.js'
 
 const fastify = Fastify()
 
