@@ -4,10 +4,10 @@
   "description": "A slow down plugin for fastify",
   "main": "index.js",
   "type": "module",
-  "types": "index.d.ts",
+  "types": "types/index.d.ts",
   "files": [
     "index.js",
-    "index.d.ts",
+    "types/index.d.ts",
     "lib"
   ],
   "scripts": {
@@ -16,8 +16,8 @@
     "run:example": "node example/basic.js",
     "redis:example": "node example/basic-redis.js",
     "test": "npm run test:unit && npm run test:types",
-    "test:unit": "node --test --experimental-test-coverage test/*.test.js",
-    "test:types": "tsd",
+    "test:unit": "node --test --experimental-test-coverage",
+    "test:types": "tstyche",
     "prepare": "husky"
   },
   "repository": {
@@ -48,10 +48,7 @@
     "lint-staged": "^17.0.4",
     "prettier": "^3.4.2",
     "sinon": "^22.0.0",
-    "tsd": "^0.33.0"
-  },
-  "tsd": {
-    "directory": "test/types"
+    "tstyche": "^7.1.0"
   },
   "lint-staged": {
     "*.{js,jsx}": "eslint --cache --fix"
