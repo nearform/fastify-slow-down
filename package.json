@@ -37,7 +37,7 @@
   "devDependencies": {
     "@commitlint/cli": "^21.0.0",
     "@commitlint/config-conventional": "^21.0.0",
-    "@fastify/rate-limit": "^10.2.1",
+    "@fastify/rate-limit": "^11.0.0",
     "c8": "^11.0.0",
     "eslint": "^9.16.0",
     "eslint-config-prettier": "^10.0.1",
