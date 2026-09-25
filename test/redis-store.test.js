@@ -1,5 +1,5 @@
 import Redis from 'ioredis'
-import { after, mock, test } from 'node:test'
+import { after, test } from 'node:test'
 import sinon from 'sinon'
 import { DEFAULT_OPTIONS } from '../lib/constants.js'
 import { convertToMs } from '../lib/helpers.js'
@@ -9,26 +9,24 @@ const REDIS_HOST = '127.0.0.1'
 
 test('should increment counter in a specified key and return stored value', async t => {
   const redis = new Redis({ host: REDIS_HOST })
-  mock.timers.enable()
   t.after(async () => {
-    mock.timers.reset()
     await redis.flushall()
     await redis.quit()
   })
 
-  const store = new RedisStore(
-    redis,
-    'fastify-slow-down',
-    convertToMs(DEFAULT_OPTIONS.timeWindow)
-  )
+  const timeWindow = convertToMs(DEFAULT_OPTIONS.timeWindow)
+  const store = new RedisStore(redis, 'fastify-slow-down', timeWindow)
   const { counter, ttl } = await store.incrementOnKey('1')
   t.assert.equal(counter, 1)
-  t.assert.equal(ttl, convertToMs(DEFAULT_OPTIONS.timeWindow))
-  mock.timers.tick(convertToMs(DEFAULT_OPTIONS.timeWindow))
+  t.assert.equal(ttl, timeWindow)
+  // Redis uses its own clock, so shorten the TTL on the server instead of mocking time
+  const reducedTtl = timeWindow - 1000
+  await redis.pexpire('fastify-slow-down1', reducedTtl)
   const { counter: secondCounter, ttl: ttlAfter } =
     await store.incrementOnKey('1')
   t.assert.equal(secondCounter, 2)
-  t.assert.notEqual(ttlAfter, convertToMs(DEFAULT_OPTIONS.timeWindow))
+  t.assert.ok(ttlAfter > 0)
+  t.assert.ok(ttlAfter <= reducedTtl)
 })
 
 test('should decrement counter for a given key if counter is greater than 0 and otherwise should have no effects', async t => {
