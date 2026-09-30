@@ -16,7 +16,7 @@
     "run:example": "node example/basic.js",
     "redis:example": "node example/basic-redis.js",
     "test": "npm run test:unit && npm run test:types",
-    "test:unit": "node --test --experimental-test-coverage",
+    "test:unit": "node --test --experimental-test-coverage test/*.test.js",
     "test:types": "tstyche",
     "prepare": "husky"
   },
