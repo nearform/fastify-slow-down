@@ -4,6 +4,9 @@
   "description": "A slow down plugin for fastify",
   "main": "index.js",
   "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
   "types": "types/index.d.ts",
   "files": [
     "index.js",
