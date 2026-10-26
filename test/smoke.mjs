@@ -1,6 +1,8 @@
 #!/usr/bin/env node
-// Stage-2 "2a" smoke test: does this package, AS PUBLISHED, install into a clean
+// Generic smoke test: does this package, AS PUBLISHED, install into a clean
 // consumer and import without throwing?
+// This is deliberately written to be made reusable, so it's a little more generic
+// than necessary for just this repo; this is a proof of concept.
 //
 // It packs the real tarball (npm pack, honouring `files`/`exports`/`.npmignore`),
 // installs it into a throwaway project, and dynamically imports every entry point
