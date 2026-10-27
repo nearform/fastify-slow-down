@@ -30,6 +30,8 @@
 
 import {
   mkdtempSync,
+  mkdirSync,
+  readdirSync,
   rmSync,
   writeFileSync,
   copyFileSync,
@@ -39,6 +41,9 @@ import {
 import { tmpdir } from 'node:os'
 import { join, resolve, basename } from 'node:path'
 import { spawnSync } from 'node:child_process'
+
+const RUN_TIMEOUT = 120000 // npm pack / install
+const EXEC_TIMEOUT = 60000 // importing / running the installed package's code
 
 // ---------- tiny arg parsing ----------
 const argv = process.argv.slice(2)
@@ -84,6 +89,17 @@ function run(cmd, args, cwd, opt = {}) {
     error: r.error
   }
 }
+function trunc(s) {
+  s = (s || '').trim()
+  return s.length > 400 ? s.slice(0, 400) + ' …' : s
+}
+// One-line reason a run failed. A timeout (SIGTERM'd, no exit code) reads very
+// differently from a real nonzero exit, so surface it explicitly.
+function why(r) {
+  if (r.error)
+    return r.error.code === 'ETIMEDOUT' ? 'timed out' : r.error.message
+  return trunc(r.out)
+}
 function die(msg) {
   console.error(`\nsmoke: ${msg}`)
   process.exit(2)
@@ -122,54 +138,53 @@ function collectSpecifiers(p) {
 const specifiers = collectSpecifiers(pkg)
 const bins =
   typeof pkg.bin === 'string' ? { [pkg.name]: pkg.bin } : pkg.bin || {}
-// Does the package actually promise an importable/runnable surface? Themes,
-// config presets and other convention-consumed packages declare none — for
-// those, a failed bare import is "not applicable", not a break.
+// Does the package promise an importable/runnable surface? Themes, config presets
+// and other convention-consumed packages declare none — for those, a failed bare
+// import is "not applicable", not a break.
 const hasDeclaredSurface =
   !!(pkg.exports || pkg.main || pkg.module) || Object.keys(bins).length > 0
+// A declared surface we CAN'T enumerate: exports are only wildcard/blocked
+// subpaths (e.g. `{ "./*": … }`), so there's no concrete specifier to import.
+const unenumerable = hasDeclaredSurface && specifiers.length === 0
 
 // ---------- scratch dirs ----------
 const work = mkdtempSync(join(tmpdir(), 'smoke-'))
 const packDest = join(work, 'pack')
 const consumer = join(work, 'consumer')
-run('mkdir', ['-p', packDest, consumer])
+mkdirSync(packDest, { recursive: true })
+mkdirSync(consumer, { recursive: true })
 let exitCode = 0
 try {
-  // optional build before packing
+  // optional build before packing (a shell string, so run it through the shell)
   if (opts.build) {
-    const r = run('sh', ['-c', opts.build], packageDir)
-    record(
-      `build (${opts.build})`,
-      r.code === 0,
-      r.code === 0 ? null : trunc(r.out)
-    )
+    const b = spawnSync(opts.build, {
+      cwd: packageDir,
+      shell: true,
+      encoding: 'utf8',
+      timeout: RUN_TIMEOUT
+    })
+    const r = {
+      code: b.status,
+      out: (b.stdout || '') + (b.stderr || ''),
+      error: b.error
+    }
+    record(`build (${opts.build})`, r.code === 0, r.code === 0 ? null : why(r))
     if (r.code !== 0) throw new Error('build failed')
   }
 
-  // 1. pack the real tarball
+  // 1. pack the real tarball (honours files/exports/.npmignore + prepare/prepack).
+  // Read the .tgz off the clean pack dir rather than parsing npm's stdout, which
+  // interleaves notices and defeats a naive JSON.parse.
   const packed = run(
     'npm',
-    ['pack', '--json', `--pack-destination=${packDest}`],
-    packageDir
+    ['pack', `--pack-destination=${packDest}`],
+    packageDir,
+    { timeout: RUN_TIMEOUT }
   )
-  let tarball
-  try {
-    tarball = join(
-      packDest,
-      JSON.parse(packed.out.trim().replace(/^[^[{]*/, '')).at(0).filename
-    )
-  } catch {
-    // npm can print warnings before the JSON; fall back to the single .tgz it wrote
-    tarball = existsSync(packDest)
-      ? join(
-          packDest,
-          run('sh', ['-c', 'ls *.tgz'], packDest).out.trim().split('\n')[0]
-        )
-      : null
-  }
-  const packedOk = !!tarball && existsSync(tarball)
-  record('npm pack', packedOk, packedOk ? basename(tarball) : trunc(packed.out))
-  if (!packedOk) throw new Error('pack failed')
+  const tgz = readdirSync(packDest).find(f => f.endsWith('.tgz'))
+  const tarball = tgz ? join(packDest, tgz) : null
+  record('npm pack', !!tarball, tarball ? tgz : why(packed))
+  if (!tarball) throw new Error('pack failed')
 
   // 2. install into a clean consumer
   writeFileSync(
@@ -191,40 +206,59 @@ try {
     '--loglevel=error'
   ]
   if (opts.strictPeers) installArgs.push('--strict-peer-deps')
-  const inst = run('npm', installArgs, consumer)
+  const inst = run('npm', installArgs, consumer, { timeout: RUN_TIMEOUT })
   const instLabel = consumerDeps.length
     ? `install into clean consumer (pinned: ${consumerDeps.join(', ')})`
     : 'install into clean consumer'
-  record(instLabel, inst.code === 0, inst.code === 0 ? null : trunc(inst.out))
+  record(instLabel, inst.code === 0, inst.code === 0 ? null : why(inst))
   if (inst.code !== 0) throw new Error('install failed')
 
   // 3. import every entry point (dynamic import handles both ESM and CJS)
-  const driver = join(consumer, '_smoke_driver.mjs')
-  writeFileSync(
-    driver,
-    `const specs = ${JSON.stringify(specifiers)}\n` +
-      `let failed = 0\n` +
-      `for (const s of specs) {\n` +
-      `  try { const m = await import(s); if (m == null) throw new Error('import resolved to null'); console.log('OK ' + s) }\n` +
-      `  catch (e) { failed++; console.log('ERR ' + s + ' :: ' + (e && e.message)) }\n` +
-      `}\n` +
-      `process.exit(failed ? 1 : 0)\n`
-  )
-  const imp = run('node', ['_smoke_driver.mjs'], consumer)
-  for (const line of imp.out.split('\n')) {
-    if (line.startsWith('OK ')) record(`import ${line.slice(3)}`, true)
-    else if (line.startsWith('ERR ')) {
-      const spec = line.slice(4).split(' :: ')[0]
-      if (hasDeclaredSurface)
-        record(`import ${spec}`, false, line.split(' :: ')[1])
-      else
-        skip(
-          `import ${spec}`,
-          'no declared entry point (exports/main/bin) — non-import archetype; needs an archetype-specific smoke'
-        )
+  if (specifiers.length > 0) {
+    const driver = join(consumer, '_smoke_driver.mjs')
+    writeFileSync(
+      driver,
+      `const specs = ${JSON.stringify(specifiers)}\n` +
+        `let failed = 0\n` +
+        `for (const s of specs) {\n` +
+        `  try { const m = await import(s); if (m == null) throw new Error('import resolved to null'); console.log('OK ' + s) }\n` +
+        `  catch (e) { failed++; console.log('ERR ' + s + ' :: ' + (e && e.message)) }\n` +
+        `}\n` +
+        `process.exit(failed ? 1 : 0)\n`
+    )
+    const imp = run('node', ['_smoke_driver.mjs'], consumer, {
+      timeout: EXEC_TIMEOUT
+    })
+    if (imp.error) {
+      record(
+        'import (driver)',
+        false,
+        imp.error.code === 'ETIMEDOUT'
+          ? 'timed out — a package import hung'
+          : imp.error.message
+      )
+      exitCode = 1
     }
+    for (const line of imp.out.split('\n')) {
+      if (line.startsWith('OK ')) record(`import ${line.slice(3)}`, true)
+      else if (line.startsWith('ERR ')) {
+        const spec = line.slice(4).split(' :: ')[0]
+        if (hasDeclaredSurface)
+          record(`import ${spec}`, false, line.split(' :: ')[1])
+        else
+          skip(
+            `import ${spec}`,
+            'no declared entry point (exports/main/bin) — non-import archetype; needs an archetype-specific smoke'
+          )
+      }
+    }
+    if (hasDeclaredSurface && imp.code !== 0) exitCode = 1
+  } else if (unenumerable) {
+    skip(
+      'import',
+      'only wildcard subpath exports (`./*`) — entry points cannot be enumerated; add an explicit entry export or a --script usage smoke to verify'
+    )
   }
-  if (hasDeclaredSurface && imp.code !== 0) exitCode = 1
 
   // 4. bin smoke — best effort: did it get published & is it runnable? (nonzero exit is OK)
   for (const name of Object.keys(bins)) {
@@ -251,11 +285,11 @@ try {
       '_smoke_user' + (opts.script.endsWith('.mjs') ? '.mjs' : '.js')
     )
     copyFileSync(resolve(opts.script), dest)
-    const r = run('node', [basename(dest)], consumer)
+    const r = run('node', [basename(dest)], consumer, { timeout: EXEC_TIMEOUT })
     record(
       `usage script (${basename(opts.script)})`,
       r.code === 0,
-      r.code === 0 ? null : trunc(r.out)
+      r.code === 0 ? null : why(r)
     )
     if (r.code !== 0) exitCode = 1
   }
@@ -266,20 +300,26 @@ try {
   else console.log(`\n(kept scratch at ${work})`)
 }
 
-function trunc(s) {
-  s = (s || '').trim()
-  return s.length > 400 ? s.slice(0, 400) + ' …' : s
-}
-
 const passed = results.filter(r => r.ok === true).length
 const failed = results.filter(r => r.ok === false).length
 const skipped = results.filter(r => r.ok === 'skip').length
 const importsPassed = results.filter(
   r => r.ok === true && r.step.startsWith('import ')
 ).length
+const usageOk = results.some(
+  r => r.step.startsWith('usage script') && r.ok === true
+)
 const notApplicable = failed === 0 && !hasDeclaredSurface && importsPassed === 0
-if (failed > 0) {
-  console.log(`\n✗ ${pkg.name}: ${passed} passed, ${failed} failed`)
+// A declared-but-unenumerable surface that nothing else exercised isn't a clean
+// pass — don't report green on a package we never actually imported.
+const unverifiable = unenumerable && !usageOk
+if (unverifiable) exitCode = exitCode || 1
+
+if (failed > 0 || unverifiable) {
+  const extra = unverifiable
+    ? ' — only wildcard exports and nothing imported; add an explicit entry export or a --script usage smoke'
+    : ''
+  console.log(`\n✗ ${pkg.name}: ${passed} passed, ${failed} failed${extra}`)
 } else if (notApplicable) {
   console.log(
     `\n⊘ ${pkg.name}: NOT APPLICABLE — no importable entry points. Packs & installs fine, but this is a non-import archetype ` +
@@ -299,6 +339,7 @@ if (opts.json)
       failed,
       skipped,
       notApplicable,
+      unverifiable,
       ok: exitCode === 0,
       results
     })
