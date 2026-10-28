@@ -23,8 +23,8 @@
 //                       the tarball (space-separated, e.g. "react@18 react-dom@18").
 //                       This is the peer-version axis: it forces the floor/ceiling
 //                       of a supported range instead of letting npm pick newest.
-//     --no-engine-strict  don't fail install on an engines mismatch (default: strict)
-//     --strict-peers      fail install on an unmet/conflicting peer range (ERESOLVE)
+//     --engine-strict     fail install on an engines mismatch (default: off)
+//     --strict-peers      fail install on an unmet/conflicting peer range / ERESOLVE (default: off)
 //     --keep              leave the temp dirs in place (for debugging)
 //     --json              emit a machine-readable summary on stdout
 
@@ -51,7 +51,7 @@ const opts = {
   build: null,
   script: null,
   consumerDeps: '',
-  engineStrict: true,
+  engineStrict: false,
   strictPeers: false,
   keep: false,
   json: false
@@ -62,7 +62,7 @@ for (let i = 0; i < argv.length; i++) {
   if (a === '--build') opts.build = argv[++i]
   else if (a === '--script') opts.script = argv[++i]
   else if (a === '--consumer-deps') opts.consumerDeps = argv[++i]
-  else if (a === '--no-engine-strict') opts.engineStrict = false
+  else if (a === '--engine-strict') opts.engineStrict = true
   else if (a === '--strict-peers') opts.strictPeers = true
   else if (a === '--keep') opts.keep = true
   else if (a === '--json') opts.json = true
@@ -322,8 +322,8 @@ if (failed > 0 || unverifiable) {
   console.log(`\n✗ ${pkg.name}: ${passed} passed, ${failed} failed${extra}`)
 } else if (notApplicable) {
   console.log(
-    `\n⊘ ${pkg.name}: NOT APPLICABLE — no importable entry points. Packs & installs fine, but this is a non-import archetype ` +
-      `(e.g. a Slidev theme / config preset). It needs an archetype-specific smoke — for a Slidev theme, \`slidev build\` a sample deck.`
+    `\n⊘ ${pkg.name}: NOT APPLICABLE — no importable entry points. Packs & installs fine, but this is a non-import package ` +
+      `(consumed by a build or host tool rather than imported). It needs an archetype-specific smoke rather than a generic import.`
   )
 } else {
   console.log(

@@ -18,7 +18,7 @@
     "test": "npm run test:unit && npm run test:types",
     "test:unit": "node --test --experimental-test-coverage test/*.test.js",
     "test:types": "tstyche",
-    "test:smoke": "node test/smoke.mjs . --consumer-deps fastify@5 --no-engine-strict --script test/smoke-usage.mjs",
+    "test:smoke": "node test/smoke.mjs . --consumer-deps fastify@5 --script test/smoke-usage.mjs",
     "prepare": "husky"
   },
   "repository": {

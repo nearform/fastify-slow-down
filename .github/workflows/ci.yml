@@ -43,10 +43,11 @@ jobs:
       # npm ci so `npm pack`'s prepare (husky) runs; the smoke then packs the
       # package, installs it into a clean consumer, imports it, and registers it
       # on a real Fastify instance (test/smoke-usage.mjs).
-      # --no-engine-strict: match fastify v5, which supports node 20 despite a
-      # transitive cookie@2 advising node >=22 (an install warning, not a break).
+      # The smoke doesn't pass --engine-strict, so an engines mismatch is a
+      # warning rather than a failure — matching fastify v5, which supports node
+      # 20 despite a transitive cookie@2 that advises node >=22.
       - run: npm ci
-      - run: node test/smoke.mjs . --consumer-deps "fastify@5" --no-engine-strict --script test/smoke-usage.mjs
+      - run: node test/smoke.mjs . --consumer-deps "fastify@5" --script test/smoke-usage.mjs
   automerge:
     name: Merge dependabot's PRs
     needs: [test, smoke]
