@@ -268,6 +268,23 @@ try {
     )
   }
 
+  // 3b. declared typings actually published? `test:types` runs in-repo, so it
+  // can't catch a types/typings entry that's dropped or renamed on the way into
+  // the tarball — only a check against the *installed* package does.
+  const typesEntry = pkg.types || pkg.typings
+  if (typesEntry) {
+    const typesPath = join(consumer, 'node_modules', pkg.name, typesEntry)
+    const ok = existsSync(typesPath)
+    record(
+      `types published (${typesEntry})`,
+      ok,
+      ok
+        ? null
+        : 'declared in package.json but missing from the installed package'
+    )
+    if (!ok) exitCode = 1
+  }
+
   // 4. bin smoke — best effort: did it get published & is it runnable? (nonzero exit is OK)
   for (const name of Object.keys(bins)) {
     const binPath = join(consumer, 'node_modules', '.bin', name)
