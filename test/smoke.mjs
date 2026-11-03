@@ -12,8 +12,7 @@
 // engine-strict / strict-peers — engines and peer-range narrowing.
 //
 // Zero dependencies: pure Node built-ins + the `npm` on PATH. Copy this one file
-// anywhere, or run it via the composite action in ./action. Works identically
-// locally and in CI.
+// anywhere; it works identically locally and in CI.
 //
 //   node smoke.mjs [packageDir=.] [options]
 //     --build "<cmd>"   run a build command in the package before packing
@@ -57,11 +56,20 @@ const opts = {
   json: false
 }
 const positional = []
+// Read the value for a value-taking flag, or abort. A bare `argv[++i]` would set
+// the option to `undefined` when the flag is last (or followed by another flag),
+// silently disabling whatever that value drives — e.g. a dropped --script path
+// would skip the usage smoke while the job stayed green.
+function value(flag, i) {
+  const v = argv[i]
+  if (v === undefined || v.startsWith('--')) die(`${flag} needs a value`)
+  return v
+}
 for (let i = 0; i < argv.length; i++) {
   const a = argv[i]
-  if (a === '--build') opts.build = argv[++i]
-  else if (a === '--script') opts.script = argv[++i]
-  else if (a === '--consumer-deps') opts.consumerDeps = argv[++i]
+  if (a === '--build') opts.build = value(a, ++i)
+  else if (a === '--script') opts.script = value(a, ++i)
+  else if (a === '--consumer-deps') opts.consumerDeps = value(a, ++i)
   else if (a === '--engine-strict') opts.engineStrict = true
   else if (a === '--strict-peers') opts.strictPeers = true
   else if (a === '--keep') opts.keep = true
@@ -293,8 +301,14 @@ try {
     )
     if (r.code !== 0) exitCode = 1
   }
-} catch {
+} catch (error) {
   exitCode = exitCode || 1
+  // A guard above (build/pack/install failure) records its own failure before
+  // throwing. An *unexpected* throw — e.g. a bad --script path reaching
+  // copyFileSync — would otherwise leave the summary green ("0 failed") on a
+  // nonzero exit, with no diagnostic. Record it when nothing else has.
+  if (!results.some(r => r.ok === false))
+    record('smoke run', false, String((error && error.message) || error))
 } finally {
   if (!opts.keep) rmSync(work, { recursive: true, force: true })
   else console.log(`\n(kept scratch at ${work})`)
